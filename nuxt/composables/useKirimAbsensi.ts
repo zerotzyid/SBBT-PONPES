@@ -7,7 +7,7 @@ export function useKirimAbsensi(opts: { error: Ref<string>; success: Ref<string>
   const { getIdToken } = useAuth()
   const kirimLoading = ref(false)
 
-  async function kirimAbsensi(payload: { month: string; scope: 'kelas' | 'semua'; class?: string; source?: string }) {
+  async function kirimAbsensi(payload: { month: string; scope: 'kelas' | 'semua'; class?: string; source?: string; studentIds?: string[] }) {
     kirimLoading.value = true
     opts.error.value = ''
     opts.success.value = ''

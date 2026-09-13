@@ -63,6 +63,7 @@
         <table class="w-full text-left" style="min-width:1400px">
           <thead class="bg-surface-container-low">
             <tr>
+              <th class="px-2 py-2 text-label-xs text-on-surface-variant w-8 text-center"><input type="checkbox" :checked="allSelected" @change="toggleAll" class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" /></th>
               <th class="px-2 py-2 text-label-xs text-on-surface-variant w-8 text-center">#</th>
               <th class="px-2 py-2 text-label-xs text-on-surface-variant sticky left-0 bg-surface-container-low z-10" style="min-width:120px">Nama Santri</th>
               <th class="px-2 py-2 text-label-xs text-on-surface-variant" style="min-width:80px">Alamat</th>
@@ -71,6 +72,7 @@
           </thead>
           <tbody class="divide-y divide-outline-variant/10">
             <tr v-for="(student, idx) in students" :key="student.id" class="hover:bg-primary-fixed/5 transition-colors">
+              <td class="px-2 py-1 text-center"><input type="checkbox" :checked="isSelected(student.id)" @change="toggleOne(student.id)" class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" /></td>
               <td class="px-2 py-1 text-label-xs text-on-surface-variant text-center">{{ idx + 1 }}</td>
               <td class="px-2 py-1 text-label-xs font-medium sticky left-0 bg-surface z-10">{{ student.name }}</td>
               <td class="px-2 py-1 text-label-xs text-on-surface-variant">{{ student.city || '-' }}</td>
@@ -243,8 +245,24 @@ const { kirimLoading, kirimAbsensi } = useKirimAbsensi({ error, success })
 
 function kirimWaWali() {
   if (!selectedMonth.value || !selectedClass.value) { error.value = 'Pilih bulan dan kelas dulu'; return }
-  if (!confirm(`Kirim rekap absensi ${selectedMonth.value} kelas ${selectedClass.value} ke WA wali santri?`)) return
-  kirimAbsensi({ month: selectedMonth.value, scope: 'kelas', class: selectedClass.value, source: 'diniyah' })
+  const ids = [...selectedIds.value]
+  const label = ids.length ? `${ids.length} wali terpilih` : `seluruh kelas ${selectedClass.value}`
+  if (!confirm(`Kirim rekap absensi ${selectedMonth.value} ke ${label}?`)) return
+  kirimAbsensi({ month: selectedMonth.value, scope: 'kelas', class: selectedClass.value, source: 'diniyah', ...(ids.length ? { studentIds: ids } : {}) })
+}
+
+// ── Seleksi santri untuk kirim WA per wali ──
+const selectedIds = ref<Set<string>>(new Set())
+const allSelected = computed(() => students.value.length > 0 && students.value.every(s => selectedIds.value.has(s.id)))
+function isSelected(id: string) { return selectedIds.value.has(id) }
+function toggleOne(id: string) {
+  const next = new Set(selectedIds.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  selectedIds.value = next
+}
+function toggleAll() {
+  selectedIds.value = allSelected.value ? new Set() : new Set(students.value.map(s => s.id))
 }
 const dayColWidth = 32
 

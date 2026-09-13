@@ -3,7 +3,8 @@ import { sendWaBulk } from '~/server/utils/wa-gateway'
 import { buildAbsensiMessage, countMarks, findStudentMarks, loadMonthEntries, monthLabel } from '~/server/utils/wa-absensi'
 
 // POST /api/wa-gateway/kirim-absensi
-// Body: { month: 'YYYY-MM', scope: 'kelas' | 'semua', class?: string, source?: 'diniyah' | 'pm' | 'semua', delayMs?: number }
+// Body: { month: 'YYYY-MM', scope: 'kelas' | 'semua', class?: string, source?: 'diniyah' | 'pm' | 'semua', studentIds?: string[], delayMs?: number }
+// Jika studentIds diisi → hanya santri itu yang dikirim (abaikan scope/class).
 // Mengirim rekap absensi per santri ke WA wali (students.parentPhone) via provider aktif.
 // Auth: session cookie / Bearer (middleware) — role super_admin | kesantrian.
 export default defineEventHandler(async (event) => {
@@ -31,6 +32,7 @@ export default defineEventHandler(async (event) => {
   const targets = all.filter((s) => {
     if (s.status && s.status !== 'Active') return false
     if (!s.parentPhone) return false
+    if (Array.isArray(body.studentIds) && body.studentIds.length > 0) return body.studentIds.includes(s.id)
     if (scope === 'kelas' && s.class !== body.class) return false
     return true
   })
