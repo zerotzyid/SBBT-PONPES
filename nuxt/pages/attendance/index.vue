@@ -95,6 +95,11 @@
         <button class="bg-secondary-container text-on-secondary-container px-4 py-2.5 rounded-xl text-label-sm font-bold hover:brightness-110 transition-all flex items-center gap-2" @click="printAttendance">
           <span class="material-symbols-outlined text-sm">print</span> Cetak
         </button>
+        <button :disabled="kirimLoading" class="bg-emerald-600 text-white px-4 py-2.5 rounded-xl text-label-sm font-bold hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-60" @click="kirimWaWali">
+          <span v-if="kirimLoading" class="material-symbols-outlined animate-spin text-sm">refresh</span>
+          <span v-else class="material-symbols-outlined text-sm">send</span>
+          {{ kirimLoading ? 'Mengirim...' : 'Kirim WA Wali' }}
+        </button>
         <button :disabled="saving" class="bg-primary text-on-primary px-4 py-2.5 rounded-xl text-label-sm font-bold hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-60" @click="saveAttendance">
           <span v-if="saving" class="material-symbols-outlined animate-spin text-sm">refresh</span>
           {{ saving ? 'Menyimpan...' : editingId ? 'Update' : 'Simpan' }}
@@ -182,6 +187,7 @@
 definePageMeta({ layout: 'super-admin', requiredRole: 'kesantrian' })
 
 import { parseOcrAttendance } from '~/composables/useOcrParser'
+import { useKirimAbsensi } from '~/composables/useKirimAbsensi'
 
 const { getIdToken } = useAuth()
 
@@ -233,6 +239,13 @@ const showOcrModal = ref(false)
 const ocrImageBase64 = ref('')
 const ocrProcessedBase64 = ref('')
 const skipWatchReload = ref(false)
+const { kirimLoading, kirimAbsensi } = useKirimAbsensi({ error, success })
+
+function kirimWaWali() {
+  if (!selectedMonth.value || !selectedClass.value) { error.value = 'Pilih bulan dan kelas dulu'; return }
+  if (!confirm(`Kirim rekap absensi ${selectedMonth.value} kelas ${selectedClass.value} ke WA wali santri?`)) return
+  kirimAbsensi({ month: selectedMonth.value, scope: 'kelas', class: selectedClass.value, source: 'diniyah' })
+}
 const dayColWidth = 32
 
 const ocrParsedRows = computed(() => {
