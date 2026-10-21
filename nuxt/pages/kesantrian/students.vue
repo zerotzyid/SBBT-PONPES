@@ -29,6 +29,9 @@
         <button class="flex items-center gap-2 px-4 py-2.5 bg-secondary-container text-on-secondary-container rounded-lg text-label-md transition-all shadow-md hover:brightness-110 active:scale-95" @click="showViolationModal = true">
           <span class="material-symbols-outlined text-sm">add_alert</span> Tambah Pelanggaran
         </button>
+        <button class="flex items-center gap-2 px-4 py-2.5 bg-surface-container-lowest text-primary border border-primary/30 rounded-lg text-label-md transition-all shadow-sm hover:bg-primary-fixed/20 active:scale-95" @click="openPrintModal">
+          <span class="material-symbols-outlined text-sm">print</span> Cetak Data
+        </button>
       </div>
     </div>
 
@@ -407,6 +410,75 @@
         </div>
       </div>
 
+      <!-- Modal Cetak Data Santri -->
+      <div v-if="showPrintModal" class="fixed inset-0 z-[100] flex items-center justify-center p-gutter bg-black/40 backdrop-blur-sm" @click.self="showPrintModal = false">
+        <div class="bg-surface rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-modal-enter">
+          <div class="bg-primary px-gutter py-stack-md flex justify-between items-center">
+            <div class="text-on-primary">
+              <h2 class="font-display text-headline-md">Cetak Data Santri</h2>
+              <p class="text-[11px] text-on-primary opacity-80 uppercase tracking-widest">Kop Surat Pondok</p>
+            </div>
+            <button class="text-on-primary/60 hover:text-on-primary p-2" @click="showPrintModal = false">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <form class="p-gutter space-y-stack-md" @submit.prevent="doPrintSantri">
+            <div class="space-y-1">
+              <label class="text-label-md text-on-surface-variant">Jenis Cetak</label>
+              <select v-model="printMode" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
+                <option value="semua">Semua Data Santri</option>
+                <option value="kelas">Per Kelas</option>
+                <option value="kota">Per Kota</option>
+                <option value="alamat">Per Alamat</option>
+              </select>
+            </div>
+
+            <div v-if="printMode === 'kelas'" class="space-y-1">
+              <label class="text-label-md text-on-surface-variant">Pilih Kelas <span class="text-error">*</span></label>
+              <select v-model="printClass" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
+                <option value="">-- Pilih Kelas --</option>
+                <option v-for="cls in classList" :key="cls.id || cls.name" :value="cls.name">{{ cls.name }}</option>
+              </select>
+            </div>
+
+            <div v-if="printMode === 'kota'" class="space-y-1">
+              <label class="text-label-md text-on-surface-variant">Pilih Kota <span class="text-error">*</span></label>
+              <select v-model="printCity" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
+                <option value="">-- Pilih Kota --</option>
+                <option v-for="city in cityList" :key="city" :value="city">{{ city }}</option>
+              </select>
+            </div>
+
+            <div v-if="printMode === 'alamat'" class="space-y-1">
+              <label class="text-label-md text-on-surface-variant">Kata Kunci Alamat <span class="text-error">*</span></label>
+              <input v-model="printAddress" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none" placeholder="Contoh: Panekan, Magetan, Turi..." />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-label-md text-on-surface-variant">Status Santri</label>
+              <select v-model="printStatus" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
+                <option value="">Semua Status</option>
+                <option value="Active">Active</option>
+                <option value="On Leave">On Leave</option>
+                <option value="Alumni">Alumni</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2 p-3 bg-primary-fixed/20 border border-primary/20 rounded-xl">
+              <span class="material-symbols-outlined text-primary">info</span>
+              <p class="text-label-sm text-on-surface-variant leading-tight">{{ printPreviewCount }} santri akan dicetak dengan kop surat pondok.</p>
+            </div>
+
+            <div class="flex justify-end gap-stack-sm pt-stack-sm border-t border-outline-variant/20">
+              <button class="px-6 py-2.5 text-on-surface-variant text-label-md hover:bg-surface-container-high rounded-lg" type="button" @click="showPrintModal = false">Batal</button>
+              <button class="px-8 py-2.5 bg-primary text-on-primary text-label-md rounded-lg shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-2" type="submit">
+                <span class="material-symbols-outlined text-sm">print</span> Cetak
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <!-- Modal Hapus Massal -->
       <div v-if="showBulkDeleteModal" class="fixed inset-0 z-[100] flex items-center justify-center p-gutter bg-black/40 backdrop-blur-sm" @click.self="showBulkDeleteModal = false">
         <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-modal-enter">
@@ -453,7 +525,11 @@
 </template>
 
 <script setup lang="ts">
+import type { PrintSantriMode } from '~/composables/usePrintSantri'
+
 definePageMeta({ layout: 'kesantrian', requiredRole: 'kesantrian' })
+
+const { printSantri, filterStudents: filterPrintStudents } = usePrintSantri()
 
 const students = ref<any[]>([])
 const classes = ref<any[]>([])
@@ -479,6 +555,13 @@ const filterClass = ref('')
 const filterDormitory = ref('')
 const filterStatus = ref('')
 const searchQuery = ref('')
+
+const showPrintModal = ref(false)
+const printMode = ref<PrintSantriMode>('semua')
+const printClass = ref('')
+const printCity = ref('')
+const printAddress = ref('')
+const printStatus = ref('')
 
 const violationForm = reactive({
   studentId: '',
@@ -521,6 +604,55 @@ const rooms = computed(() => {
 })
 
 const classList = computed(() => classes.value)
+
+const cityList = computed(() => {
+  const set = new Set<string>()
+  students.value.forEach(s => { if (s.city) set.add(String(s.city).trim()) })
+  return Array.from(set).sort((a, b) => a.localeCompare(b))
+})
+
+const printPreviewCount = computed(() => filterPrintStudents({
+  students: students.value,
+  mode: printMode.value,
+  class: printClass.value,
+  city: printCity.value,
+  address: printAddress.value,
+  status: printStatus.value,
+}).length)
+
+function openPrintModal() {
+  printMode.value = 'semua'
+  printClass.value = filterClass.value || ''
+  printCity.value = ''
+  printAddress.value = ''
+  printStatus.value = filterStatus.value || ''
+  showPrintModal.value = true
+}
+
+function doPrintSantri() {
+  if (printMode.value === 'kelas' && !printClass.value) {
+    error.value = 'Pilih kelas terlebih dahulu'
+    return
+  }
+  if (printMode.value === 'kota' && !printCity.value) {
+    error.value = 'Pilih kota terlebih dahulu'
+    return
+  }
+  if (printMode.value === 'alamat' && !printAddress.value.trim()) {
+    error.value = 'Isi kata kunci alamat terlebih dahulu'
+    return
+  }
+  error.value = ''
+  printSantri({
+    students: students.value,
+    mode: printMode.value,
+    class: printClass.value,
+    city: printCity.value,
+    address: printAddress.value.trim(),
+    status: printStatus.value,
+  })
+  showPrintModal.value = false
+}
 
 const filteredStudents = computed(() => {
   let result = students.value
