@@ -1,169 +1,134 @@
 <template>
   <div>
-    <div v-if="error" class="mb-stack-lg p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-label-md">{{ error }}</div>
-    <div v-if="success" class="mb-stack-lg p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-label-md">{{ success }}</div>
+    <div v-if="error" class="mb-4 md:mb-gutter p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-label-md">{{ error }}</div>
+    <div v-if="success" class="mb-4 md:mb-gutter p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-label-md">{{ success }}</div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-stack-lg">
-      <div v-for="stat in stats" :key="stat.label" :class="['glass-card p-stack-md rounded-xl shadow-sm', stat.border]">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-on-surface-variant text-label-md">{{ stat.label }}</span>
-          <span class="material-symbols-outlined" :class="stat.iconColor">{{ stat.icon }}</span>
-        </div>
-        <p class="font-display text-headline-md" :class="stat.valueColor">{{ stat.value }}</p>
-        <div class="flex items-center gap-1 mt-1">
-          <span v-if="stat.badge" :class="['text-[10px] px-1.5 py-0.5 rounded-full', stat.badgeClass]">{{ stat.badge }}</span>
-          <span class="text-on-surface-variant text-[10px]">{{ stat.subtext }}</span>
-        </div>
-      </div>
-    </div>
+    <PageHeader
+      title="Database Santri"
+      description="Kelola data santri terintegrasi dengan master data kelas, kamar, dan guru."
+      :stats="stats"
+      :actions="[
+        { label: 'Tambah Santri', icon: 'add', variant: 'primary', handler: openAddModal },
+        { label: 'Pelanggaran', icon: 'add_alert', variant: 'secondary', handler: () => showViolationModal.value = true },
+        { label: 'Cetak', icon: 'print', variant: 'outline', handler: openPrintModal },
+      ]"
+    />
 
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-stack-md mb-stack-md">
-      <div>
-        <h2 class="font-display text-headline-md text-primary">Database Santri</h2>
-        <p class="text-on-surface-variant text-body-md">Kelola data santri terintegrasi dengan master data kelas, kamar, dan guru.</p>
-      </div>
-      <div class="flex items-center gap-stack-sm">
-        <button class="flex items-center gap-2 px-4 py-2.5 bg-primary text-on-primary rounded-lg text-label-md transition-all shadow-md hover:brightness-110 active:scale-95" @click="openAddModal">
-          <span class="material-symbols-outlined text-sm">add</span> Tambah Santri
-        </button>
-        <button class="flex items-center gap-2 px-4 py-2.5 bg-secondary-container text-on-secondary-container rounded-lg text-label-md transition-all shadow-md hover:brightness-110 active:scale-95" @click="showViolationModal = true">
-          <span class="material-symbols-outlined text-sm">add_alert</span> Tambah Pelanggaran
-        </button>
-        <button class="flex items-center gap-2 px-4 py-2.5 bg-surface-container-lowest text-primary border border-primary/30 rounded-lg text-label-md transition-all shadow-sm hover:bg-primary-fixed/20 active:scale-95" @click="openPrintModal">
-          <span class="material-symbols-outlined text-sm">print</span> Cetak Data
-        </button>
-      </div>
-    </div>
-
-    <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-surface-variant/50">
-      <div class="p-stack-md border-b border-surface-variant/30 flex flex-wrap items-center gap-stack-md">
-        <div class="flex items-center gap-2">
-          <label class="text-label-sm text-on-surface-variant">Kelas:</label>
-          <select v-model="filterClass" class="bg-surface-container-low border-none rounded-lg text-label-md py-1.5 focus:ring-primary-container px-3">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-surface-variant/50 mb-4 md:mb-gutter">
+      <div class="p-4 md:p-gutter border-b border-surface-variant/30 flex flex-wrap items-center gap-3 md:gap-gutter">
+        <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+          <label class="text-label-sm text-on-surface-variant hidden sm:block">Kelas:</label>
+          <select v-model="filterClass" class="bg-surface-container-low border-none rounded-lg text-label-md py-1.5 px-3 focus:ring-primary-container w-full sm:w-auto">
             <option value="">Semua Kelas</option>
             <option v-for="cls in classList" :key="cls.id || cls" :value="cls.name || cls">{{ cls.name || cls }}</option>
           </select>
         </div>
-        <div class="flex items-center gap-2">
-          <label class="text-label-sm text-on-surface-variant">Kamar:</label>
-          <select v-model="filterDormitory" class="bg-surface-container-low border-none rounded-lg text-label-md py-1.5 focus:ring-primary-container px-3">
+        <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+          <label class="text-label-sm text-on-surface-variant hidden sm:block">Kamar:</label>
+          <select v-model="filterDormitory" class="bg-surface-container-low border-none rounded-lg text-label-md py-1.5 px-3 focus:ring-primary-container w-full sm:w-auto">
             <option value="">Semua Kamar</option>
             <option v-for="d in dormitories" :key="d.id" :value="d.name">{{ d.name }}</option>
           </select>
         </div>
-        <div class="flex items-center gap-2">
-          <label class="text-label-sm text-on-surface-variant">Status:</label>
-          <select v-model="filterStatus" class="bg-surface-container-low border-none rounded-lg text-label-md py-1.5 focus:ring-primary-container px-3">
+        <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+          <label class="text-label-sm text-on-surface-variant hidden sm:block">Status:</label>
+          <select v-model="filterStatus" class="bg-surface-container-low border-none rounded-lg text-label-md py-1.5 px-3 focus:ring-primary-container w-full sm:w-auto">
             <option value="">Semua Status</option>
             <option value="Active">Active</option>
             <option value="On Leave">On Leave</option>
             <option value="Alumni">Alumni</option>
           </select>
         </div>
-        <div class="flex items-center gap-2 ml-auto">
-          <input v-model="searchQuery" type="text" placeholder="Cari santri..." class="bg-surface-container-low border-none rounded-lg text-label-md py-1.5 px-3 focus:ring-primary-container w-48" />
-          <button class="p-2 hover:bg-surface-container-high rounded-lg transition-colors" @click="fetchStudents" title="Refresh">
+        <div class="flex items-center gap-2 ml-auto md:ml-0 flex-1 min-w-[200px]">
+          <input v-model="searchQuery" type="text" placeholder="Cari santri..." class="bg-surface-container-low border-none rounded-lg text-label-md py-1.5 px-3 focus:ring-primary-container w-full" />
+          <button class="p-2 hover:bg-surface-container-high rounded-lg transition-colors touch-target" @click="fetchStudents" title="Refresh" aria-label="Refresh data">
             <span class="material-symbols-outlined text-on-surface-variant" :class="{ 'animate-spin': loading }">refresh</span>
           </button>
         </div>
       </div>
 
-      <div v-if="selectedStudents.length > 0" class="px-stack-md py-3 bg-primary-fixed/20 border-b border-surface-variant/30 flex items-center gap-4">
+      <div v-if="selectedStudents.length > 0" class="px-4 md:px-gutter py-3 bg-primary-fixed/20 border-b border-surface-variant/30 flex flex-wrap items-center gap-3">
         <span class="text-label-sm font-semibold text-primary">{{ selectedStudents.length }} santri terpilih</span>
-        <button class="text-label-sm bg-error text-on-error px-3 py-1.5 rounded-lg hover:brightness-110 transition-all flex items-center gap-1" @click="confirmBulkDelete">
-          <span class="material-symbols-outlined text-sm">delete</span> Hapus
-        </button>
-        <button class="text-label-sm bg-secondary-container text-on-secondary-container px-3 py-1.5 rounded-lg hover:brightness-110 transition-all flex items-center gap-1" @click="bulkSetActive">
-          <span class="material-symbols-outlined text-sm">check_circle</span> Set Active
-        </button>
-        <button class="text-label-sm bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg hover:brightness-110 transition-all flex items-center gap-1" @click="bulkSetOnLeave">
-          <span class="material-symbols-outlined text-sm">pause_circle</span> Set On Leave
-        </button>
-        <button class="ml-auto text-label-sm text-on-surface-variant hover:text-primary flex items-center gap-1" @click="selectedStudents = []">
-          <span class="material-symbols-outlined text-sm">close</span> Batal
-        </button>
+        <div class="flex flex-wrap gap-2">
+          <button class="text-label-sm bg-error text-on-error px-3 py-1.5 rounded-lg hover:brightness-110 transition-all touch-target flex items-center gap-1" @click="confirmBulkDelete">
+            <span class="material-symbols-outlined text-sm">delete</span> Hapus
+          </button>
+          <button class="text-label-sm bg-secondary-container text-on-secondary-container px-3 py-1.5 rounded-lg hover:brightness-110 transition-all touch-target flex items-center gap-1" @click="bulkSetActive">
+            <span class="material-symbols-outlined text-sm">check_circle</span> Set Active
+          </button>
+          <button class="text-label-sm bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg hover:brightness-110 transition-all touch-target flex items-center gap-1" @click="bulkSetOnLeave">
+            <span class="material-symbols-outlined text-sm">pause_circle</span> Set On Leave
+          </button>
+          <button class="text-label-sm text-on-surface-variant hover:text-primary touch-target flex items-center gap-1" @click="tableSelection.clearSelection()">
+            <span class="material-symbols-outlined text-sm">close</span> Batal
+          </button>
+        </div>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead class="bg-surface-container-low">
-            <tr>
-              <th class="px-4 py-4 text-label-md text-on-surface-variant w-10">
-                <input type="checkbox" :checked="selectedStudents.length === filteredStudents.length && filteredStudents.length > 0" @change="toggleAllStudents" class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" />
-              </th>
-              <th class="px-6 py-4 text-label-md text-on-surface-variant">Nama Santri</th>
-              <th class="px-6 py-4 text-label-md text-on-surface-variant">NIS</th>
-              <th class="px-6 py-4 text-label-md text-on-surface-variant">Kelas</th>
-              <th class="px-6 py-4 text-label-md text-on-surface-variant">Kamar</th>
-              <th class="px-6 py-4 text-label-md text-on-surface-variant">Gender</th>
-              <th class="px-6 py-4 text-label-md text-on-surface-variant">Skor Disiplin</th>
-              <th class="px-6 py-4 text-label-md text-on-surface-variant">Status</th>
-              <th class="px-6 py-4 text-label-md text-on-surface-variant">Aksi</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-surface-variant/30">
-            <tr v-if="loading">
-              <td colspan="9" class="px-6 py-12 text-center text-on-surface-variant text-label-md">
-                <span class="material-symbols-outlined animate-spin align-middle mr-2">refresh</span> Memuat data...
-              </td>
-            </tr>
-            <tr v-else-if="filteredStudents.length === 0">
-              <td colspan="9" class="px-6 py-12 text-center text-on-surface-variant text-label-md">Tidak ada data santri</td>
-            </tr>
-            <tr v-for="student in filteredStudents" :key="student.id" class="hover:bg-primary-container/5 transition-colors group" :class="{ 'bg-primary-fixed/10': selectedStudent?.id === student.id }">
-              <td class="px-4 py-4">
-                <input type="checkbox" :checked="selectedStudents.includes(student.id)" @change="toggleStudent(student.id)" class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" />
-              </td>
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <div v-if="student.photo" class="w-9 h-9 rounded-full overflow-hidden shrink-0">
-                    <img :src="student.photo" alt="" class="w-full h-full object-cover" />
-                  </div>
-                  <div v-else :class="['w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0', student.avatarBg]">
-                    {{ student.initials }}
-                  </div>
-                  <div>
-                    <p class="text-label-md text-on-surface font-medium cursor-pointer hover:text-primary" @click="selectStudent(student)">{{ student.name }}</p>
-                    <p class="text-[11px] text-on-surface-variant">{{ student.city || '-' }}</p>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 text-label-md text-on-surface-variant">{{ student.nis || '-' }}</td>
-              <td class="px-6 py-4">
-                <span class="bg-surface-container-low px-2 py-0.5 rounded text-label-sm text-on-surface-variant">{{ student.class || '-' }}</span>
-              </td>
-              <td class="px-6 py-4 text-label-md text-on-surface-variant">{{ student.roomName || student.dormitoryName || '-' }}</td>
-              <td class="px-6 py-4 text-label-md text-on-surface-variant">{{ student.gender || '-' }}</td>
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-2">
-                  <div class="flex-1 h-1.5 w-20 bg-surface-container-highest rounded-full overflow-hidden">
-                    <div :class="['h-full rounded-full', student.scoreBar]" :style="{ width: student.score + '%' }"></div>
-                  </div>
-                  <span :class="['text-label-sm font-bold', student.scoreColor]">{{ student.score }}</span>
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <span :class="['px-3 py-1 text-[11px] font-bold rounded-full uppercase tracking-wider', student.statusClass]">{{ student.status }}</span>
-              </td>
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-1">
-                  <button class="p-1.5 rounded-lg hover:bg-primary-fixed/20 text-primary transition-colors" title="Edit" @click="openEditModal(student)">
-                    <span class="material-symbols-outlined text-sm">edit</span>
-                  </button>
-                  <button class="p-1.5 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Hapus" @click="confirmDelete(student)">
-                    <span class="material-symbols-outlined text-sm">delete</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+
+      <ResponsiveTable
+        :items="filteredStudents"
+        :columns="tableColumns"
+        :show-selection="true"
+        v-model:selectedRows="tableSelection.selected"
+        :loading="loading"
+        loading-text="Memuat data..."
+        empty-text="Tidak ada data santri"
+      >
+        <template #cell-name="{ item }">
+          <div class="flex items-center gap-3">
+            <div v-if="item.photo" class="w-9 h-9 rounded-full overflow-hidden shrink-0">
+              <img :src="item.photo" alt="" class="w-full h-full object-cover" />
+            </div>
+            <div v-else :class="['w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0', item.avatarBg]">
+              {{ item.initials }}
+            </div>
+            <div>
+              <p class="text-label-md text-on-surface font-medium cursor-pointer hover:text-primary" @click="selectStudent(item)">{{ item.name }}</p>
+              <p class="text-[11px] text-on-surface-variant">{{ item.city || '-' }}</p>
+            </div>
+          </div>
+        </template>
+        <template #cell-nis="{ item }">
+          <span class="text-label-md text-on-surface-variant">{{ item.nis || '-' }}</span>
+        </template>
+        <template #cell-class="{ item }">
+          <span class="bg-surface-container-low px-2 py-0.5 rounded text-label-sm text-on-surface-variant">{{ item.class || '-' }}</span>
+        </template>
+        <template #cell-room="{ item }">
+          <span class="text-label-md text-on-surface-variant">{{ item.roomName || item.dormitoryName || '-' }}</span>
+        </template>
+        <template #cell-gender="{ item }">
+          <span class="text-label-md text-on-surface-variant">{{ item.gender || '-' }}</span>
+        </template>
+        <template #cell-score="{ item }">
+          <div class="flex items-center gap-2">
+            <div class="flex-1 h-1.5 w-20 bg-surface-container-highest rounded-full overflow-hidden">
+              <div :class="['h-full rounded-full', item.scoreBar]" :style="{ width: item.score + '%' }"></div>
+            </div>
+            <span :class="['text-label-sm font-bold', item.scoreColor]">{{ item.score }}</span>
+          </div>
+        </template>
+        <template #cell-status="{ item }">
+          <span :class="['px-3 py-1 text-[11px] font-bold rounded-full uppercase tracking-wider', item.statusClass]">{{ item.status }}</span>
+        </template>
+        <template #actions="{ item }">
+          <div class="flex items-center gap-1">
+            <button class="p-1.5 rounded-lg hover:bg-primary-fixed/20 text-primary transition-colors touch-target" title="Edit" @click.stop="openEditModal(item)">
+              <span class="material-symbols-outlined text-sm">edit</span>
+            </button>
+            <button class="p-1.5 rounded-lg hover:bg-red-50 text-red-600 transition-colors touch-target" title="Hapus" @click.stop="confirmDelete(item)">
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </div>
+        </template>
+      </ResponsiveTable>
+
       <div class="p-4 border-t border-surface-variant/30 flex items-center justify-between">
         <span class="text-on-surface-variant text-label-md">{{ filteredStudents.length }} dari {{ students.length }} santri</span>
       </div>
     </div>
 
-    <div v-if="selectedStudent" class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mt-stack-lg">
+    <div v-if="selectedStudent" class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mt-gutter">
       <div class="lg:col-span-2 glass-card rounded-2xl p-gutter flex flex-col md:flex-row gap-gutter">
         <div class="md:w-1/3">
           <div v-if="selectedStudent.photo" class="w-full aspect-[4/5] rounded-xl shadow-lg overflow-hidden">
@@ -173,7 +138,7 @@
             <span class="material-symbols-outlined text-6xl text-primary">person</span>
           </div>
         </div>
-        <div class="md:w-2/3 space-y-stack-md">
+        <div class="md:w-2/3 space-y-gutter">
           <div class="flex justify-between items-start">
             <div>
               <h3 class="font-display text-headline-md text-primary">{{ selectedStudent.name }}</h3>
@@ -183,7 +148,7 @@
               Skor: {{ selectedStudent.score }}
             </span>
           </div>
-          <div class="grid grid-cols-2 gap-stack-md">
+          <div class="grid grid-cols-2 gap-gutter">
             <div class="p-3 bg-surface-container-low rounded-xl">
               <p class="text-[10px] uppercase text-on-surface-variant font-semibold">Kota</p>
               <p class="text-title-sm font-bold text-primary">{{ selectedStudent.city || '-' }}</p>
@@ -203,13 +168,13 @@
             <p class="text-label-md text-on-surface">Skor Disiplin: <span class="font-bold" :class="selectedStudent.score >= 80 ? 'text-green-600' : selectedStudent.score >= 60 ? 'text-amber-600' : 'text-red-600'">{{ selectedStudent.score }}</span></p>
             <p class="text-label-md text-on-surface">Orang Tua: <span class="font-medium">{{ selectedStudent.parentName || '-' }} ({{ selectedStudent.parentPhone || '-' }})</span></p>
           </div>
-          <div class="pt-2 flex gap-3">
-            <button class="flex-1 py-2 bg-primary text-on-primary rounded-lg text-label-md hover:brightness-110 transition-all" @click="openEditModal(selectedStudent)">Edit Santri</button>
-            <button class="flex-1 py-2 border border-red-500 text-red-600 rounded-lg text-label-md hover:bg-red-50 transition-all" @click="confirmDelete(selectedStudent)">Hapus</button>
+          <div class="pt-2 flex flex-col sm:flex-row gap-3">
+            <button class="flex-1 py-2 bg-primary text-on-primary rounded-lg text-label-md hover:brightness-110 transition-all touch-target" @click="openEditModal(selectedStudent)">Edit Santri</button>
+            <button class="flex-1 py-2 border border-red-500 text-red-600 rounded-lg text-label-md hover:bg-red-50 transition-all touch-target" @click="confirmDelete(selectedStudent)">Hapus</button>
           </div>
         </div>
       </div>
-      <div class="glass-card rounded-2xl p-gutter space-y-stack-md">
+      <div class="glass-card rounded-2xl p-gutter space-y-gutter">
         <h3 class="font-display text-title-lg text-on-background flex items-center justify-between">
           Statistik Disiplin
           <span class="material-symbols-outlined text-on-surface-variant text-sm">info</span>
@@ -226,306 +191,297 @@
       </div>
     </div>
 
-    <!-- Modal Tambah/Edit Santri -->
-    <Teleport to="body">
-      <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-gutter bg-black/40 backdrop-blur-sm overflow-y-auto py-10" @click.self="closeModal">
-        <div class="bg-surface rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden animate-modal-enter my-auto">
-          <div class="bg-primary px-gutter py-stack-md flex justify-between items-center">
-            <div class="text-on-primary">
-              <h2 class="font-display text-headline-md">{{ isEditing ? 'Edit Santri' : 'Tambah Santri' }}</h2>
-              <p class="text-[11px] text-on-primary opacity-80 uppercase tracking-widest">Terintegrasi Master Data</p>
+    <ResponsiveModal
+      v-model="showModal"
+      :title="isEditing ? 'Edit Santri' : 'Tambah Santri'"
+      description="Terintegrasi Master Data"
+      :max-width="'xl'"
+      :max-height="'85vh'"
+      @submit="saveStudent"
+    >
+      <form novalidate class="space-y-gutter max-h-[70vh] overflow-y-auto" @submit.prevent="saveStudent">
+        <div class="flex items-center gap-4 mb-2">
+          <div class="relative group cursor-pointer" @click="triggerPhotoUpload">
+            <div v-if="form.photo" class="w-[100px] h-[100px] rounded-full overflow-hidden shadow-md border-2 border-primary-fixed">
+              <img :src="form.photo" alt="foto" class="w-full h-full object-cover" />
             </div>
-            <button class="text-on-primary/60 hover:text-on-primary p-2" @click="closeModal">
-              <span class="material-symbols-outlined">close</span>
-            </button>
+            <div v-else class="w-[100px] h-[100px] rounded-full bg-primary-fixed/30 flex items-center justify-center shadow-md border-2 border-dashed border-primary-fixed group-hover:border-primary transition-colors">
+              <span class="material-symbols-outlined text-3xl text-primary-fixed">add_a_photo</span>
+            </div>
+            <div class="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-all">
+              <span class="material-symbols-outlined text-white opacity-0 group-hover:opacity-100 transition-opacity text-2xl">camera_alt</span>
+            </div>
           </div>
-          <form novalidate class="p-gutter space-y-stack-md max-h-[70vh] overflow-y-auto" @submit.prevent="saveStudent">
-            <div class="flex items-center gap-4 mb-2">
-              <div class="relative group cursor-pointer" @click="triggerPhotoUpload">
-                <div v-if="form.photo" class="w-[100px] h-[100px] rounded-full overflow-hidden shadow-md border-2 border-primary-fixed">
-                  <img :src="form.photo" alt="foto" class="w-full h-full object-cover" />
-                </div>
-                <div v-else class="w-[100px] h-[100px] rounded-full bg-primary-fixed/30 flex items-center justify-center shadow-md border-2 border-dashed border-primary-fixed group-hover:border-primary transition-colors">
-                  <span class="material-symbols-outlined text-3xl text-primary-fixed">add_a_photo</span>
-                </div>
-                <div class="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-all">
-                  <span class="material-symbols-outlined text-white opacity-0 group-hover:opacity-100 transition-opacity text-2xl">camera_alt</span>
-                </div>
-              </div>
-              <div class="flex-1">
-                <p class="text-label-sm text-on-surface-variant">Foto Santri <span class="text-on-surface-variant/60">(opsional)</span></p>
-                <p class="text-[10px] text-on-surface-variant/60">Klik untuk upload. Foto akan di-crop 100x100.</p>
-                <input ref="photoInput" type="file" accept="image/*" class="hidden" @change="handlePhotoUpload" />
-                <button v-if="form.photo" type="button" class="mt-2 text-label-xs text-error hover:underline" @click="removePhoto">Hapus Foto</button>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-stack-md">
-              <div class="space-y-1">
-                <label class="text-label-md text-on-surface-variant">Nama Santri <span class="text-error">*</span></label>
-                <input v-model="form.name" type="text" required class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none" placeholder="Nama lengkap" />
-              </div>
-              <div class="space-y-1">
-                <label class="text-label-md text-on-surface-variant">NIS <span class="text-xs text-on-surface-variant">(otomatis)</span></label>
-                <input v-model="form.nis" type="text" disabled class="w-full bg-surface-container-low border-none rounded-lg text-body-md p-3 outline-none opacity-60 cursor-not-allowed" :placeholder="isEditing ? 'Nomor induk' : 'Akan digenerate otomatis'" />
-              </div>
-            </div>
-
-            <div class="space-y-1">
-              <label class="text-label-md text-on-surface-variant">Kelas <span class="text-error">*</span></label>
-              <select v-if="classes.length > 0" v-model="form.classId" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
-                <option value="">-- Pilih Kelas --</option>
-                <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }} ({{ cls.level || '' }}{{ cls.group || '' }})</option>
-              </select>
-              <input v-else v-model="form.className" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none" placeholder="Ketik nama kelas, contoh: Kelas 10 - Al-Azhar" />
-            </div>
-
-            <div class="grid grid-cols-2 gap-stack-md">
-              <div class="space-y-1">
-                <label class="text-label-md text-on-surface-variant">Gender</label>
-                <select v-model="form.gender" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
-                  <option value="Laki-laki">Laki-laki</option>
-                  <option value="Perempuan">Perempuan</option>
-                </select>
-              </div>
-              <div class="space-y-1">
-                <label class="text-label-md text-on-surface-variant">Gedung/Kamar</label>
-                <select v-if="dormitories.length > 0" v-model="form.dormitoryId" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none" @change="onDormitoryChange">
-                  <option value="">-- Pilih Gedung --</option>
-                  <option v-for="d in dormitories" :key="d.id" :value="d.id">{{ d.name }} ({{ d.gender || '-' }})</option>
-                </select>
-                <input v-else v-model="form.dormitoryName" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none" placeholder="Ketik nama gedung/kamar" />
-              </div>
-            </div>
-
-            <div v-if="form.dormitoryId && rooms.length > 0" class="space-y-1">
-              <label class="text-label-md text-on-surface-variant">Kamar</label>
-              <select v-model="form.roomId" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
-                <option value="">-- Pilih Kamar --</option>
-                <option v-for="r in rooms" :key="r.id" :value="r.id">{{ r.name }}</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-2 gap-stack-md">
-              <div class="space-y-1">
-                <label class="text-label-md text-on-surface-variant">Kota Asal</label>
-                <input v-model="form.city" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none" placeholder="Kota" />
-              </div>
-              <div class="space-y-1">
-                <label class="text-label-md text-on-surface-variant">No. Telepon</label>
-                <input v-model="form.phone" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none" placeholder="No. HP" />
-              </div>
-            </div>
-
-            <div class="space-y-1">
-              <label class="text-label-md text-on-surface-variant">Alamat</label>
-              <textarea v-model="form.address" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none" placeholder="Alamat lengkap" rows="2"></textarea>
-            </div>
-
-            <div class="grid grid-cols-2 gap-stack-md">
-              <div class="space-y-1">
-                <label class="text-label-md text-on-surface-variant">Nama Orang Tua / Wali</label>
-                <input v-model="form.parentName" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none" placeholder="Nama orang tua" />
-              </div>
-              <div class="space-y-1">
-                <label class="text-label-md text-on-surface-variant">No. HP Orang Tua</label>
-                <input v-model="form.parentPhone" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none" placeholder="No. HP orang tua" />
-              </div>
-            </div>
-
-            <div v-if="isEditing" class="space-y-1">
-              <label class="text-label-md text-on-surface-variant">Status</label>
-              <select v-model="form.status" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
-                <option value="Active">Active</option>
-                <option value="On Leave">On Leave</option>
-                <option value="Alumni">Alumni</option>
-              </select>
-            </div>
-
-            <div class="flex justify-end gap-stack-sm pt-stack-sm border-t border-outline-variant/20">
-              <button class="px-6 py-2.5 text-on-surface-variant text-label-md hover:bg-surface-container-high rounded-lg" type="button" @click="closeModal">Batal</button>
-              <button class="px-8 py-2.5 bg-primary text-on-primary text-label-md rounded-lg shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-2" type="submit" :disabled="saving">
-                <span v-if="saving" class="material-symbols-outlined animate-spin text-sm">refresh</span>
-                {{ saving ? 'Menyimpan...' : 'Simpan' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Modal Pelanggaran -->
-      <div v-if="showViolationModal" class="fixed inset-0 z-[60] flex items-center justify-center p-gutter bg-black/40 backdrop-blur-sm" @click.self="showViolationModal = false">
-        <div class="bg-surface rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-modal-enter">
-          <div class="bg-secondary-container px-gutter py-stack-md flex justify-between items-center">
-            <div class="text-on-secondary-container">
-              <h2 class="font-display text-headline-md">Tambah Pelanggaran</h2>
-              <p class="text-[11px] text-on-secondary-container opacity-80 uppercase tracking-widest">Kesantrian Module</p>
-            </div>
-            <button class="text-on-secondary-container/60 hover:text-on-secondary-container p-2" @click="showViolationModal = false">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
-          <form class="p-gutter space-y-stack-md" @submit.prevent="submitViolation">
-            <div class="space-y-1">
-              <label class="text-label-md text-on-surface-variant">Pilih Santri <span class="text-error">*</span></label>
-              <select v-model="violationForm.studentId" required class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
-                <option value="">-- Pilih Santri --</option>
-                <option v-for="s in students" :key="s.id" :value="s.id">{{ s.name }} ({{ s.class || '-' }})</option>
-              </select>
-            </div>
-            <div class="grid grid-cols-2 gap-stack-md">
-              <div class="space-y-1">
-                <label class="text-label-md text-on-surface-variant">Tipe Pelanggaran</label>
-                <select v-model="violationForm.type" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
-                  <option value="Ringan">Ringan</option>
-                  <option value="Sedang">Sedang</option>
-                  <option value="Berat">Berat</option>
-                </select>
-              </div>
-              <div class="space-y-1">
-                <label class="text-label-md text-on-surface-variant">Kategori</label>
-                <select v-model="violationForm.category" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
-                  <option value="Kedisiplinan">Kedisiplinan</option>
-                  <option value="Ibadah">Ibadah</option>
-                  <option value="Kebersihan">Kebersihan</option>
-                  <option value="Akhlak">Akhlak</option>
-                </select>
-              </div>
-            </div>
-            <div class="space-y-1">
-              <label class="text-label-md text-on-surface-variant">Deskripsi Pelanggaran</label>
-              <textarea v-model="violationForm.description" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none" placeholder="Deskripsi kejadian..." rows="3"></textarea>
-            </div>
-            <div class="flex items-center gap-2 p-3 bg-secondary-fixed/30 border border-secondary-container/20 rounded-xl">
-              <span class="material-symbols-outlined text-secondary">info</span>
-              <p class="text-label-sm text-on-secondary-fixed-variant leading-tight">Pelanggaran akan mengurangi skor disiplin santri secara otomatis.</p>
-            </div>
-            <div class="flex justify-end gap-stack-sm pt-stack-sm">
-              <button class="px-6 py-2.5 text-on-surface-variant text-label-md hover:bg-surface-container-high rounded-lg" type="button" @click="showViolationModal = false">Batal</button>
-              <button class="px-8 py-2.5 bg-secondary-container text-on-secondary-container text-label-md rounded-lg shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-2" type="submit" :disabled="violationSaving">
-                <span v-if="violationSaving" class="material-symbols-outlined animate-spin text-sm">refresh</span>
-                {{ violationSaving ? 'Menyimpan...' : 'Submit' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Modal Cetak Data Santri -->
-      <div v-if="showPrintModal" class="fixed inset-0 z-[100] flex items-center justify-center p-gutter bg-black/40 backdrop-blur-sm" @click.self="showPrintModal = false">
-        <div class="bg-surface rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-modal-enter">
-          <div class="bg-primary px-gutter py-stack-md flex justify-between items-center">
-            <div class="text-on-primary">
-              <h2 class="font-display text-headline-md">Cetak Data Santri</h2>
-              <p class="text-[11px] text-on-primary opacity-80 uppercase tracking-widest">Kop Surat Pondok</p>
-            </div>
-            <button class="text-on-primary/60 hover:text-on-primary p-2" @click="showPrintModal = false">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
-          <form class="p-gutter space-y-stack-md" @submit.prevent="doPrintSantri">
-            <div class="space-y-1">
-              <label class="text-label-md text-on-surface-variant">Jenis Cetak</label>
-              <select v-model="printMode" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
-                <option value="semua">Semua Data Santri</option>
-                <option value="kelas">Per Kelas</option>
-                <option value="kota">Per Kota</option>
-                <option value="alamat">Per Alamat</option>
-              </select>
-            </div>
-
-            <div v-if="printMode === 'kelas'" class="space-y-1">
-              <label class="text-label-md text-on-surface-variant">Pilih Kelas <span class="text-error">*</span></label>
-              <select v-model="printClass" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
-                <option value="">-- Pilih Kelas --</option>
-                <option v-for="cls in classList" :key="cls.id || cls.name" :value="cls.name">{{ cls.name }}</option>
-              </select>
-            </div>
-
-            <div v-if="printMode === 'kota'" class="space-y-1">
-              <label class="text-label-md text-on-surface-variant">Pilih Kota <span class="text-error">*</span></label>
-              <select v-model="printCity" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
-                <option value="">-- Pilih Kota --</option>
-                <option v-for="city in cityList" :key="city" :value="city">{{ city }}</option>
-              </select>
-            </div>
-
-            <div v-if="printMode === 'alamat'" class="space-y-1">
-              <label class="text-label-md text-on-surface-variant">Kata Kunci Alamat <span class="text-error">*</span></label>
-              <input v-model="printAddress" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none" placeholder="Contoh: Panekan, Magetan, Turi..." />
-            </div>
-
-            <div class="space-y-1">
-              <label class="text-label-md text-on-surface-variant">Status Santri</label>
-              <select v-model="printStatus" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none">
-                <option value="">Semua Status</option>
-                <option value="Active">Active</option>
-                <option value="On Leave">On Leave</option>
-                <option value="Alumni">Alumni</option>
-              </select>
-            </div>
-
-            <div class="flex items-center gap-2 p-3 bg-primary-fixed/20 border border-primary/20 rounded-xl">
-              <span class="material-symbols-outlined text-primary">info</span>
-              <p class="text-label-sm text-on-surface-variant leading-tight">{{ printPreviewCount }} santri akan dicetak dengan kop surat pondok.</p>
-            </div>
-
-            <div class="flex justify-end gap-stack-sm pt-stack-sm border-t border-outline-variant/20">
-              <button class="px-6 py-2.5 text-on-surface-variant text-label-md hover:bg-surface-container-high rounded-lg" type="button" @click="showPrintModal = false">Batal</button>
-              <button class="px-8 py-2.5 bg-primary text-on-primary text-label-md rounded-lg shadow-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-2" type="submit">
-                <span class="material-symbols-outlined text-sm">print</span> Cetak
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Modal Hapus Massal -->
-      <div v-if="showBulkDeleteModal" class="fixed inset-0 z-[100] flex items-center justify-center p-gutter bg-black/40 backdrop-blur-sm" @click.self="showBulkDeleteModal = false">
-        <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-modal-enter">
-          <div class="p-6 text-center">
-            <div class="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span class="material-symbols-outlined text-red-500 text-3xl">warning</span>
-            </div>
-            <h3 class="font-display text-title-lg text-on-surface mb-2">Hapus {{ selectedStudents.length }} Santri</h3>
-            <p class="text-on-surface-variant text-label-md">Yakin ingin menghapus {{ selectedStudents.length }} santri terpilih? Tindakan ini tidak dapat dibatalkan.</p>
-          </div>
-          <div class="p-6 border-t border-outline-variant/20 flex justify-end gap-3">
-            <button class="px-4 py-2 bg-surface-container-low text-on-surface rounded-lg text-label-md hover:bg-surface-container-higher transition-all" @click="showBulkDeleteModal = false">Batal</button>
-            <button class="px-4 py-2 bg-error text-on-error rounded-lg text-label-md hover:brightness-110 transition-all shadow-sm flex items-center gap-2" @click="doBulkDelete" :disabled="deleting">
-              <span v-if="deleting" class="material-symbols-outlined animate-spin text-sm">refresh</span>
-              {{ deleting ? 'Menghapus...' : 'Hapus Semua' }}
-            </button>
+          <div class="flex-1">
+            <p class="text-label-sm text-on-surface-variant">Foto Santri <span class="text-on-surface-variant/60">(opsional)</span></p>
+            <p class="text-[10px] text-on-surface-variant/60">Klik untuk upload. Foto akan di-crop 100x100.</p>
+            <input ref="photoInput" type="file" accept="image/*" class="hidden" @change="handlePhotoUpload" />
+            <button v-if="form.photo" type="button" class="mt-2 text-label-xs text-error hover:underline" @click="removePhoto">Hapus Foto</button>
           </div>
         </div>
-      </div>
 
-      <!-- Modal Hapus -->
-      <div v-if="showDeleteModal" class="fixed inset-0 z-[100] flex items-center justify-center p-gutter bg-black/40 backdrop-blur-sm" @click.self="showDeleteModal = false">
-        <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-modal-enter">
-          <div class="p-6 text-center">
-            <div class="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span class="material-symbols-outlined text-red-500 text-3xl">warning</span>
-            </div>
-            <h3 class="font-display text-title-lg text-on-surface mb-2">Hapus Santri</h3>
-            <p class="text-on-surface-variant text-label-md mb-1">Apakah Anda yakin ingin menghapus santri berikut?</p>
-            <p class="font-bold text-on-surface text-body-md">{{ deleteTarget?.name }}</p>
-            <p v-if="deleteTarget?.class || deleteTarget?.roomName" class="text-label-sm text-on-surface-variant mt-1">{{ deleteTarget?.class }} &bull; {{ deleteTarget?.roomName || deleteTarget?.dormitoryName || '-' }}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-gutter">
+          <div class="space-y-1">
+            <label class="text-label-md text-on-surface-variant">Nama Santri <span class="text-error">*</span></label>
+            <input v-model="form.name" type="text" required class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target" placeholder="Nama lengkap" />
           </div>
-          <div class="p-6 border-t border-outline-variant/20 flex justify-end gap-3">
-            <button class="px-4 py-2 bg-surface-container-low text-on-surface rounded-lg text-label-md hover:bg-surface-container-higher transition-all" @click="showDeleteModal = false">Batal</button>
-            <button class="px-4 py-2 bg-error text-on-error rounded-lg text-label-md hover:brightness-110 transition-all shadow-sm flex items-center gap-2" @click="doDelete" :disabled="deleting">
-              <span v-if="deleting" class="material-symbols-outlined animate-spin text-sm">refresh</span>
-              {{ deleting ? 'Menghapus...' : 'Hapus' }}
-            </button>
+          <div class="space-y-1">
+            <label class="text-label-md text-on-surface-variant">NIS <span class="text-xs text-on-surface-variant">(otomatis)</span></label>
+            <input v-model="form.nis" type="text" disabled class="w-full bg-surface-container-low border-none rounded-lg text-body-md p-3 outline-none opacity-60 cursor-not-allowed touch-target" :placeholder="isEditing ? 'Nomor induk' : 'Akan digenerate otomatis'" />
           </div>
         </div>
+
+        <div class="space-y-1">
+          <label class="text-label-md text-on-surface-variant">Kelas <span class="text-error">*</span></label>
+          <select v-if="classes.length > 0" v-model="form.classId" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target" required>
+            <option value="">-- Pilih Kelas --</option>
+            <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }} ({{ cls.level || '' }}{{ cls.group || '' }})</option>
+          </select>
+          <input v-else v-model="form.className" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target" placeholder="Ketik nama kelas, contoh: Kelas 10 - Al-Azhar" required />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-gutter">
+          <div class="space-y-1">
+            <label class="text-label-md text-on-surface-variant">Gender</label>
+            <select v-model="form.gender" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target">
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-label-md text-on-surface-variant">Gedung/Kamar</label>
+            <select v-if="dormitories.length > 0" v-model="form.dormitoryId" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target" @change="onDormitoryChange">
+              <option value="">-- Pilih Gedung --</option>
+              <option v-for="d in dormitories" :key="d.id" :value="d.id">{{ d.name }} ({{ d.gender || '-' }})</option>
+            </select>
+            <input v-else v-model="form.dormitoryName" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target" placeholder="Ketik nama gedung/kamar" />
+          </div>
+        </div>
+
+        <div v-if="form.dormitoryId && rooms.length > 0" class="space-y-1">
+          <label class="text-label-md text-on-surface-variant">Kamar</label>
+          <select v-model="form.roomId" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target">
+            <option value="">-- Pilih Kamar --</option>
+            <option v-for="r in rooms" :key="r.id" :value="r.id">{{ r.name }}</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-gutter">
+          <div class="space-y-1">
+            <label class="text-label-md text-on-surface-variant">Kota Asal</label>
+            <input v-model="form.city" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target" placeholder="Kota" />
+          </div>
+          <div class="space-y-1">
+            <label class="text-label-md text-on-surface-variant">No. Telepon</label>
+            <input v-model="form.phone" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target" placeholder="No. HP" />
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-label-md text-on-surface-variant">Alamat</label>
+          <textarea v-model="form.address" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target" placeholder="Alamat lengkap" rows="2"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-gutter">
+          <div class="space-y-1">
+            <label class="text-label-md text-on-surface-variant">Nama Orang Tua / Wali</label>
+            <input v-model="form.parentName" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target" placeholder="Nama orang tua" />
+          </div>
+          <div class="space-y-1">
+            <label class="text-label-md text-on-surface-variant">No. HP Orang Tua</label>
+            <input v-model="form.parentPhone" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target" placeholder="No. HP orang tua" />
+          </div>
+        </div>
+
+        <div v-if="isEditing" class="space-y-1">
+          <label class="text-label-md text-on-surface-variant">Status</label>
+          <select v-model="form.status" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target">
+            <option value="Active">Active</option>
+            <option value="On Leave">On Leave</option>
+            <option value="Alumni">Alumni</option>
+          </select>
+        </div>
+      </form>
+
+      <template #footer>
+        <button class="px-6 py-2.5 text-on-surface-variant text-label-md hover:bg-surface-container-high rounded-lg touch-target" type="button" @click="closeModal">Batal</button>
+        <button class="px-8 py-2.5 bg-primary text-on-primary text-label-md rounded-lg shadow-md hover:brightness-110 active:scale-95 transition-all touch-target flex items-center justify-center gap-2" type="button" :disabled="saving" @click="saveStudent">
+          <span v-if="saving" class="material-symbols-outlined animate-spin text-sm">refresh</span>
+          {{ saving ? 'Menyimpan...' : 'Simpan' }}
+        </button>
+      </template>
+    </ResponsiveModal>
+
+    <ResponsiveModal
+      v-model="showViolationModal"
+      title="Tambah Pelanggaran"
+      description="Kesantrian Module"
+      :max-width="'lg'"
+      @submit="submitViolation"
+    >
+      <form class="space-y-gutter" @submit.prevent="submitViolation">
+        <div class="space-y-1">
+          <label class="text-label-md text-on-surface-variant">Pilih Santri <span class="text-error">*</span></label>
+          <select v-model="violationForm.studentId" required class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target">
+            <option value="">-- Pilih Santri --</option>
+            <option v-for="s in students" :key="s.id" :value="s.id">{{ s.name }} ({{ s.class || '-' }})</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-gutter">
+          <div class="space-y-1">
+            <label class="text-label-md text-on-surface-variant">Tipe Pelanggaran</label>
+            <select v-model="violationForm.type" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target">
+              <option value="Ringan">Ringan</option>
+              <option value="Sedang">Sedang</option>
+              <option value="Berat">Berat</option>
+            </select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-label-md text-on-surface-variant">Kategori</label>
+            <select v-model="violationForm.category" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target">
+              <option value="Kedisiplinan">Kedisiplinan</option>
+              <option value="Ibadah">Ibadah</option>
+              <option value="Kebersihan">Kebersihan</option>
+              <option value="Akhlak">Akhlak</option>
+            </select>
+          </div>
+        </div>
+        <div class="space-y-1">
+          <label class="text-label-md text-on-surface-variant">Deskripsi Pelanggaran</label>
+          <textarea v-model="violationForm.description" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target" placeholder="Deskripsi kejadian..." rows="3"></textarea>
+        </div>
+        <div class="flex items-center gap-2 p-3 bg-secondary-fixed/30 border border-secondary-container/20 rounded-xl">
+          <span class="material-symbols-outlined text-secondary">info</span>
+          <p class="text-label-sm text-on-secondary-fixed-variant leading-tight">Pelanggaran akan mengurangi skor disiplin santri secara otomatis.</p>
+        </div>
+      </form>
+
+      <template #footer>
+        <button class="px-6 py-2.5 text-on-surface-variant text-label-md hover:bg-surface-container-high rounded-lg touch-target" type="button" @click="showViolationModal = false">Batal</button>
+        <button class="px-8 py-2.5 bg-secondary-container text-on-secondary-container text-label-md rounded-lg shadow-md hover:brightness-110 active:scale-95 transition-all touch-target flex items-center justify-center gap-2" type="button" :disabled="violationSaving" @click="submitViolation">
+          <span v-if="violationSaving" class="material-symbols-outlined animate-spin text-sm">refresh</span>
+          {{ violationSaving ? 'Menyimpan...' : 'Submit' }}
+        </button>
+      </template>
+    </ResponsiveModal>
+
+    <ResponsiveModal
+      v-model="showPrintModal"
+      title="Cetak Data Santri"
+      description="Kop Surat Pondok"
+      :max-width="'lg'"
+      @submit="doPrintSantri"
+    >
+      <form class="space-y-gutter" @submit.prevent="doPrintSantri">
+        <div class="space-y-1">
+          <label class="text-label-md text-on-surface-variant">Jenis Cetak</label>
+          <select v-model="printMode" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target">
+            <option value="semua">Semua Data Santri</option>
+            <option value="kelas">Per Kelas</option>
+            <option value="kota">Per Kota</option>
+            <option value="alamat">Per Alamat</option>
+          </select>
+        </div>
+
+        <div v-if="printMode === 'kelas'" class="space-y-1">
+          <label class="text-label-md text-on-surface-variant">Pilih Kelas <span class="text-error">*</span></label>
+          <select v-model="printClass" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target">
+            <option value="">-- Pilih Kelas --</option>
+            <option v-for="cls in classList" :key="cls.id || cls.name" :value="cls.name">{{ cls.name }}</option>
+          </select>
+        </div>
+
+        <div v-if="printMode === 'kota'" class="space-y-1">
+          <label class="text-label-md text-on-surface-variant">Pilih Kota <span class="text-error">*</span></label>
+          <select v-model="printCity" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target">
+            <option value="">-- Pilih Kota --</option>
+            <option v-for="city in cityList" :key="city" :value="city">{{ city }}</option>
+          </select>
+        </div>
+
+        <div v-if="printMode === 'alamat'" class="space-y-1">
+          <label class="text-label-md text-on-surface-variant">Kata Kunci Alamat <span class="text-error">*</span></label>
+          <input v-model="printAddress" type="text" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target" placeholder="Contoh: Panekan, Magetan, Turi..." />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-label-md text-on-surface-variant">Status Santri</label>
+          <select v-model="printStatus" class="w-full bg-surface-container-low border-none rounded-lg text-body-md focus:ring-primary p-3 outline-none touch-target">
+            <option value="">Semua Status</option>
+            <option value="Active">Active</option>
+            <option value="On Leave">On Leave</option>
+            <option value="Alumni">Alumni</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2 p-3 bg-primary-fixed/20 border border-primary/20 rounded-xl">
+          <span class="material-symbols-outlined text-primary">info</span>
+          <p class="text-label-sm text-on-surface-variant leading-tight">{{ printPreviewCount }} santri akan dicetak dengan kop surat pondok.</p>
+        </div>
+      </form>
+
+      <template #footer>
+        <button class="px-6 py-2.5 text-on-surface-variant text-label-md hover:bg-surface-container-high rounded-lg touch-target" type="button" @click="showPrintModal = false">Batal</button>
+        <button class="px-8 py-2.5 bg-primary text-on-primary text-label-md rounded-lg shadow-md hover:brightness-110 active:scale-95 transition-all touch-target flex items-center justify-center gap-2" type="button" @click="doPrintSantri">
+          <span class="material-symbols-outlined text-sm">print</span> Cetak
+        </button>
+      </template>
+    </ResponsiveModal>
+
+    <ResponsiveModal
+      v-model="showBulkDeleteModal"
+      title="Hapus {{ selectedStudents.length }} Santri"
+      :max-width="'sm'"
+      :hide-footer="true"
+    >
+      <div class="p-6 text-center">
+        <div class="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-red-500 text-3xl">warning</span>
+        </div>
+        <h3 class="font-display text-title-lg text-on-surface mb-2">Hapus {{ selectedStudents.length }} Santri</h3>
+        <p class="text-on-surface-variant text-label-md">Yakin ingin menghapus {{ selectedStudents.length }} santri terpilih? Tindakan ini tidak dapat dibatalkan.</p>
       </div>
-    </Teleport>
+      <template #footer>
+        <button class="w-full md:w-auto px-4 py-2 bg-surface-container-low text-on-surface rounded-lg text-label-md hover:bg-surface-container-higher transition-all touch-target" @click="showBulkDeleteModal = false">Batal</button>
+        <button class="w-full md:w-auto px-4 py-2 bg-error text-on-error rounded-lg text-label-md hover:brightness-110 transition-all shadow-sm touch-target flex items-center justify-center gap-2" @click="doBulkDelete" :disabled="deleting">
+          <span v-if="deleting" class="material-symbols-outlined animate-spin text-sm">refresh</span>
+          {{ deleting ? 'Menghapus...' : 'Hapus Semua' }}
+        </button>
+      </template>
+    </ResponsiveModal>
+
+    <ResponsiveModal
+      v-model="showDeleteModal"
+      title="Hapus Santri"
+      :max-width="'sm'"
+      :hide-footer="true"
+    >
+      <div class="p-6 text-center">
+        <div class="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-red-500 text-3xl">warning</span>
+        </div>
+        <h3 class="font-display text-title-lg text-on-surface mb-2">Hapus Santri</h3>
+        <p class="text-on-surface-variant text-label-md mb-1">Apakah Anda yakin ingin menghapus santri berikut?</p>
+        <p class="font-bold text-on-surface text-body-md">{{ deleteTarget?.name }}</p>
+        <p v-if="deleteTarget?.class || deleteTarget?.roomName" class="text-label-sm text-on-surface-variant mt-1">{{ deleteTarget?.class }} &bull; {{ deleteTarget?.roomName || deleteTarget?.dormitoryName || '-' }}</p>
+      </div>
+      <template #footer>
+        <button class="w-full md:w-auto px-4 py-2 bg-surface-container-low text-on-surface rounded-lg text-label-md hover:bg-surface-container-higher transition-all touch-target" @click="showDeleteModal = false">Batal</button>
+        <button class="w-full md:w-auto px-4 py-2 bg-error text-on-error rounded-lg text-label-md hover:brightness-110 transition-all shadow-sm touch-target flex items-center justify-center gap-2" @click="doDelete" :disabled="deleting">
+          <span v-if="deleting" class="material-symbols-outlined animate-spin text-sm">refresh</span>
+          {{ deleting ? 'Menghapus...' : 'Hapus' }}
+        </button>
+      </template>
+    </ResponsiveModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { PrintSantriMode } from '~/composables/usePrintSantri'
+import { useTableSelection } from '~/composables/useTableSelection'
+import PageHeader from '~/components/PageHeader.vue'
+import ResponsiveTable from '~/components/ResponsiveTable.vue'
+import ResponsiveModal from '~/components/ResponsiveModal.vue'
 
 definePageMeta({ layout: 'kesantrian', requiredRole: 'kesantrian' })
 
@@ -542,13 +498,13 @@ const showModal = ref(false)
 const showViolationModal = ref(false)
 const showDeleteModal = ref(false)
 const showBulkDeleteModal = ref(false)
+const showPrintModal = ref(false)
 const isEditing = ref(false)
 const saving = ref(false)
 const violationSaving = ref(false)
 const deleting = ref(false)
 const deleteTarget = ref<any>(null)
 const selectedStudent = ref<any>(null)
-const selectedStudents = ref<string[]>([])
 const photoInput = ref<HTMLInputElement | null>(null)
 
 const filterClass = ref('')
@@ -556,7 +512,6 @@ const filterDormitory = ref('')
 const filterStatus = ref('')
 const searchQuery = ref('')
 
-const showPrintModal = ref(false)
 const printMode = ref<PrintSantriMode>('semua')
 const printClass = ref('')
 const printCity = ref('')
@@ -620,39 +575,15 @@ const printPreviewCount = computed(() => filterPrintStudents({
   status: printStatus.value,
 }).length)
 
-function openPrintModal() {
-  printMode.value = 'semua'
-  printClass.value = filterClass.value || ''
-  printCity.value = ''
-  printAddress.value = ''
-  printStatus.value = filterStatus.value || ''
-  showPrintModal.value = true
-}
-
-function doPrintSantri() {
-  if (printMode.value === 'kelas' && !printClass.value) {
-    error.value = 'Pilih kelas terlebih dahulu'
-    return
-  }
-  if (printMode.value === 'kota' && !printCity.value) {
-    error.value = 'Pilih kota terlebih dahulu'
-    return
-  }
-  if (printMode.value === 'alamat' && !printAddress.value.trim()) {
-    error.value = 'Isi kata kunci alamat terlebih dahulu'
-    return
-  }
-  error.value = ''
-  printSantri({
-    students: students.value,
-    mode: printMode.value,
-    class: printClass.value,
-    city: printCity.value,
-    address: printAddress.value.trim(),
-    status: printStatus.value,
-  })
-  showPrintModal.value = false
-}
+const tableColumns = [
+  { key: 'name', label: 'Nama Santri', minWidth: '180px' },
+  { key: 'nis', label: 'NIS', minWidth: '100px' },
+  { key: 'class', label: 'Kelas', minWidth: '100px' },
+  { key: 'room', label: 'Kamar', minWidth: '100px' },
+  { key: 'gender', label: 'Gender', minWidth: '90px', align: 'center' as const },
+  { key: 'score', label: 'Skor Disiplin', minWidth: '120px' },
+  { key: 'status', label: 'Status', minWidth: '100px', align: 'center' as const },
+]
 
 const filteredStudents = computed(() => {
   let result = students.value
@@ -688,6 +619,10 @@ const disciplineStats = computed(() => {
     { label: 'Partisipasi', rating: 'Aktif', value: Math.round(Math.min(100, avg + 10)), color: 'text-primary', barColor: 'bg-primary-container' },
   ]
 })
+
+const tableSelection = useTableSelection(() => filteredStudents)
+
+const selectedStudents = computed(() => tableSelection.selected.value)
 
 async function loadMasterData() {
   try {
@@ -734,83 +669,6 @@ async function fetchStudents() {
 
 function selectStudent(student: any) {
   selectedStudent.value = student
-}
-
-function toggleStudent(id: string) {
-  if (selectedStudents.value.includes(id)) {
-    selectedStudents.value = selectedStudents.value.filter(s => s !== id)
-  } else {
-    selectedStudents.value.push(id)
-  }
-}
-
-function toggleAllStudents() {
-  const ids = filteredStudents.value.map(s => s.id)
-  if (selectedStudents.value.length === ids.length && ids.length > 0) {
-    selectedStudents.value = []
-  } else {
-    selectedStudents.value = [...ids]
-  }
-}
-
-function confirmBulkDelete() {
-  if (selectedStudents.value.length === 0) return
-  showBulkDeleteModal.value = true
-}
-
-async function doBulkDelete() {
-  if (selectedStudents.value.length === 0) return
-  deleting.value = true
-  error.value = ''
-  try {
-    await Promise.all(selectedStudents.value.map(id =>
-      $fetch(`/api/students/${id}`, { method: 'DELETE' })
-    ))
-    success.value = `${selectedStudents.value.length} santri berhasil dihapus`
-    selectedStudents.value = []
-    showBulkDeleteModal.value = false
-    if (selectedStudent.value && selectedStudents.value.includes(selectedStudent.value.id)) {
-      selectedStudent.value = null
-    }
-    await fetchStudents()
-  } catch (e: any) {
-    error.value = e.message || 'Gagal menghapus'
-  } finally {
-    deleting.value = false
-  }
-  setTimeout(() => { success.value = '' }, 3000)
-}
-
-async function bulkSetActive() {
-  if (selectedStudents.value.length === 0) return
-  error.value = ''
-  try {
-    await Promise.all(selectedStudents.value.map(id =>
-      $fetch(`/api/students/${id}`, { method: 'PUT', body: { status: 'Active' } })
-    ))
-    success.value = `${selectedStudents.value.length} santri diubah ke Active`
-    selectedStudents.value = []
-    await fetchStudents()
-  } catch (e: any) {
-    error.value = e.message || 'Gagal mengubah status'
-  }
-  setTimeout(() => { success.value = '' }, 3000)
-}
-
-async function bulkSetOnLeave() {
-  if (selectedStudents.value.length === 0) return
-  error.value = ''
-  try {
-    await Promise.all(selectedStudents.value.map(id =>
-      $fetch(`/api/students/${id}`, { method: 'PUT', body: { status: 'On Leave' } })
-    ))
-    success.value = `${selectedStudents.value.length} santri diubah ke On Leave`
-    selectedStudents.value = []
-    await fetchStudents()
-  } catch (e: any) {
-    error.value = e.message || 'Gagal mengubah status'
-  }
-  setTimeout(() => { success.value = '' }, 3000)
 }
 
 function triggerPhotoUpload() {
@@ -908,52 +766,149 @@ async function saveStudent() {
   }
   const classIdVal = form.classId != null ? String(form.classId).trim() : ''
   const classNameVal = form.className != null ? String(form.className).trim() : ''
+
   if (!classIdVal && !classNameVal) {
-    error.value = 'Kelas harus diisi'
+    error.value = 'Kelas harus dipilih atau diisi'
     return
   }
 
   saving.value = true
-
-  const cls = classes.value.find(c => c.id === form.classId)
-  const dorm = dormitories.value.find(d => d.id === form.dormitoryId)
-  const room = rooms.value.find((r: any) => r.id === form.roomId)
-  const roomName = room ? (room.name || room) : form.roomName
-
-  const body = {
-    name: form.name,
-    nis: form.nis,
-    class: cls?.name || form.className,
-    classId: form.classId,
-    gender: form.gender,
-    dormitoryId: form.dormitoryId,
-    dormitoryName: dorm?.name || form.dormitoryName,
-    roomId: form.roomId,
-    roomName,
-    city: form.city,
-    phone: form.phone,
-    address: form.address,
-    parentName: form.parentName,
-    parentPhone: form.parentPhone,
-    status: form.status || 'Active',
-    photo: form.photo || '',
-  }
-
   try {
+    const { id, ...payload } = form as any
     if (isEditing.value) {
-      await $fetch(`/api/students/${form.id}`, { method: 'PUT', body })
-      success.value = 'Data santri berhasil diperbarui'
+      await $fetch(`/api/students/${id}`, { method: 'PUT', body: payload })
+      success.value = 'Santri berhasil diperbarui'
     } else {
-      await $fetch('/api/students', { method: 'POST', body })
-      success.value = 'Santri baru berhasil ditambahkan'
+      await $fetch('/api/students', { method: 'POST', body: payload })
+      success.value = 'Santri berhasil ditambahkan'
     }
     showModal.value = false
     await fetchStudents()
   } catch (e: any) {
-    error.value = e.data?.message || e.message || 'Gagal menyimpan data santri'
-    console.error('Save student error:', e)
+    error.value = e.message || 'Gagal menyimpan'
   } finally {
     saving.value = false
+  }
+  setTimeout(() => { success.value = '' }, 3000)
+}
+
+async function submitViolation() {
+  if (!violationForm.studentId || !violationForm.description) {
+    error.value = 'Santri dan deskripsi pelanggaran harus diisi'
+    return
+  }
+  violationSaving.value = true
+  error.value = ''
+  try {
+    await $fetch('/api/violations', {
+      method: 'POST',
+      body: violationForm,
+    })
+    showViolationModal.value = false
+    violationForm.studentId = ''
+    violationForm.description = ''
+    violationForm.type = 'Ringan'
+    violationForm.category = 'Kedisiplinan'
+    success.value = 'Pelanggaran berhasil ditambahkan'
+    await fetchStudents()
+  } catch (e: any) {
+    error.value = e.message || 'Gagal menambah pelanggaran'
+  } finally {
+    violationSaving.value = false
+  }
+  setTimeout(() => { success.value = '' }, 3000)
+}
+
+function openPrintModal() {
+  printMode.value = 'semua'
+  printClass.value = filterClass.value || ''
+  printCity.value = ''
+  printAddress.value = ''
+  printStatus.value = filterStatus.value || ''
+  showPrintModal.value = true
+}
+
+function doPrintSantri() {
+  if (printMode.value === 'kelas' && !printClass.value) {
+    error.value = 'Pilih kelas terlebih dahulu'
+    return
+  }
+  if (printMode.value === 'kota' && !printCity.value) {
+    error.value = 'Pilih kota terlebih dahulu'
+    return
+  }
+  if (printMode.value === 'alamat' && !printAddress.value.trim()) {
+    error.value = 'Isi kata kunci alamat terlebih dahulu'
+    return
+  }
+  error.value = ''
+  printSantri({
+    students: students.value,
+    mode: printMode.value,
+    class: printClass.value,
+    city: printCity.value,
+    address: printAddress.value.trim(),
+    status: printStatus.value,
+  })
+  showPrintModal.value = false
+}
+
+function confirmBulkDelete() {
+  if (tableSelection.selected.value.length === 0) return
+  showBulkDeleteModal.value = true
+}
+
+async function doBulkDelete() {
+  if (tableSelection.selected.value.length === 0) return
+  deleting.value = true
+  error.value = ''
+  try {
+    await Promise.all(tableSelection.selected.value.map(id =>
+      $fetch(`/api/students/${id}`, { method: 'DELETE' })
+    ))
+    success.value = `${tableSelection.selected.value.length} santri berhasil dihapus`
+    tableSelection.clearSelection()
+    showBulkDeleteModal.value = false
+    if (selectedStudent.value && tableSelection.selected.value.includes(selectedStudent.value.id)) {
+      selectedStudent.value = null
+    }
+    await fetchStudents()
+  } catch (e: any) {
+    error.value = e.message || 'Gagal menghapus'
+  } finally {
+    deleting.value = false
+  }
+  setTimeout(() => { success.value = '' }, 3000)
+}
+
+async function bulkSetActive() {
+  if (tableSelection.selected.value.length === 0) return
+  error.value = ''
+  try {
+    await Promise.all(tableSelection.selected.value.map(id =>
+      $fetch(`/api/students/${id}`, { method: 'PUT', body: { status: 'Active' } })
+    ))
+    success.value = `${tableSelection.selected.value.length} santri diubah ke Active`
+    tableSelection.clearSelection()
+    await fetchStudents()
+  } catch (e: any) {
+    error.value = e.message || 'Gagal mengubah status'
+  }
+  setTimeout(() => { success.value = '' }, 3000)
+}
+
+async function bulkSetOnLeave() {
+  if (tableSelection.selected.value.length === 0) return
+  error.value = ''
+  try {
+    await Promise.all(tableSelection.selected.value.map(id =>
+      $fetch(`/api/students/${id}`, { method: 'PUT', body: { status: 'On Leave' } })
+    ))
+    success.value = `${tableSelection.selected.value.length} santri diubah ke On Leave`
+    tableSelection.clearSelection()
+    await fetchStudents()
+  } catch (e: any) {
+    error.value = e.message || 'Gagal mengubah status'
   }
   setTimeout(() => { success.value = '' }, 3000)
 }
@@ -967,55 +922,23 @@ async function doDelete() {
   if (!deleteTarget.value) return
   deleting.value = true
   error.value = ''
-  success.value = ''
   try {
     await $fetch(`/api/students/${deleteTarget.value.id}`, { method: 'DELETE' })
-    success.value = 'Santri berhasil dihapus'
     showDeleteModal.value = false
-    const deletedId = deleteTarget.value.id
-    deleteTarget.value = null
-    if (selectedStudent.value?.id === deletedId) {
+    if (selectedStudent.value?.id === deleteTarget.value.id) {
       selectedStudent.value = null
     }
+    deleteTarget.value = null
     await fetchStudents()
   } catch (e: any) {
-    error.value = e.message || 'Gagal menghapus santri'
+    error.value = e.message || 'Gagal menghapus'
   } finally {
     deleting.value = false
   }
-  setTimeout(() => { success.value = '' }, 3000)
 }
 
-async function submitViolation() {
-  if (!violationForm.studentId) return
-  violationSaving.value = true
-  error.value = ''
-  success.value = ''
-  try {
-    const student = students.value.find(s => s.id === violationForm.studentId)
-    await $fetch(`/api/students/${violationForm.studentId}/violations`, {
-      method: 'POST',
-      body: {
-        ...violationForm,
-        studentName: student?.name || '',
-        reportedBy: 'System',
-      },
-    })
-    success.value = 'Pelanggaran berhasil dicatat'
-    showViolationModal.value = false
-    violationForm.studentId = ''
-    violationForm.description = ''
-    await fetchStudents()
-  } catch (e: any) {
-    error.value = e.message || 'Gagal mencatat pelanggaran'
-  } finally {
-    violationSaving.value = false
-  }
-  setTimeout(() => { success.value = '' }, 3000)
-}
-
-onMounted(() => {
-  loadMasterData()
-  fetchStudents()
+onMounted(async () => {
+  await loadMasterData()
+  await fetchStudents()
 })
 </script>

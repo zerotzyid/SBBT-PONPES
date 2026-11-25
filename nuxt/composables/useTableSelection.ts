@@ -1,9 +1,10 @@
 import type { Ref, ComputedRef } from 'vue'
 
-export function useTableSelection<T extends { id: string | number }>(getItems: () => (T[] | Ref<T[]> | ComputedRef<T[]>)) {
+export function useTableSelection<T extends { id: string | number }>(getItems: () => (T[] | Ref<T[]> | ComputedRef<T[]> | undefined)) {
   const selected = ref<(string | number)[]>([])
   const items = computed(() => {
     const result = getItems()
+    if (!result) return [] as T[]
     if (result && typeof result === 'object' && 'value' in result) {
       return (result as Ref<T[]>).value
     }

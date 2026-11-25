@@ -3,8 +3,35 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --topbar-height: 4rem;
+    --sidebar-width: 16rem;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
     @apply bg-background text-on-background font-sans min-h-screen overflow-x-hidden;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
@@ -31,8 +58,14 @@
     display: none;
   }
 
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
@@ -42,6 +75,10 @@
   .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #bfc9c3;
     border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #9ca8a2;
   }
 
   .bg-mesh {
@@ -59,6 +96,66 @@
     from { opacity: 0; transform: scale(0.95) translateY(10px); }
     to { opacity: 1; transform: scale(1) translateY(0); }
   }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(100%); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-slide-down {
+    animation: slide-down 0.2s ease-out;
+  }
+
+  @keyframes slide-down {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(100%); }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.2s ease-out;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .animate-fade-out {
+    animation: fade-out 0.2s ease-in;
+  }
+
+  @keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  .touch-target {
+    @apply min-h-touch min-w-touch;
+  }
+
+  .touch-target-lg {
+    @apply min-h-touch-lg min-w-touch-lg;
+  }
+
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-inset-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-inset-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-inset-right {
+    padding-right: env(safe-area-inset-right);
+  }
 }
 
 .material-symbols-outlined {
@@ -67,7 +164,142 @@
   line-height: 1;
 }
 
-/* ── Responsive Global ───────────────────────────────── */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .container-responsive {
+    @apply w-full max-w-container-max mx-auto px-4 md:px-gutter;
+  }
+
+  .grid-responsive-4 {
+    @apply grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-4 md:gap-gutter;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-gutter;
+  }
+
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-gutter;
+  }
+
+  .flex-responsive {
+    @apply flex flex-col md:flex-row gap-4 md:gap-gutter;
+  }
+
+  .space-y-responsive {
+    @apply space-y-4 md:space-y-gutter;
+  }
+
+  .p-responsive {
+    @apply p-4 md:p-gutter;
+  }
+
+  .px-responsive {
+    @apply px-4 md:px-gutter;
+  }
+
+  .py-responsive {
+    @apply py-4 md:py-gutter;
+  }
+
+  .gap-responsive {
+    @apply gap-4 md:gap-gutter;
+  }
+
+  .text-responsive-display {
+    @apply text-display-lg-fluid;
+  }
+
+  .text-responsive-headline-lg {
+    @apply text-headline-lg-fluid;
+  }
+
+  .text-responsive-headline-md {
+    @apply text-headline-md-fluid;
+  }
+
+  .text-responsive-title-lg {
+    @apply text-title-lg-fluid;
+  }
+
+  .text-responsive-body-md {
+    @apply text-body-md-fluid;
+  }
+
+  .table-responsive {
+    @apply w-full overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-responsive table {
+    @apply min-w-[600px];
+  }
+
+  .card-row {
+    @apply flex flex-col gap-2 p-4 bg-surface rounded-xl border border-surface-variant/30;
+  }
+
+  .card-row-header {
+    @apply flex items-center justify-between text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold;
+  }
+
+  .card-row-field {
+    @apply flex items-center gap-2;
+  }
+
+  .card-row-label {
+    @apply text-[11px] text-on-surface-variant font-medium w-24 shrink-0;
+  }
+
+  .card-row-value {
+    @apply text-label-md text-on-surface truncate flex-1;
+  }
+
+  .sticky-topbar {
+    @apply fixed top-0 right-0 left-16 md:left-0 z-topbar h-16 bg-surface/60 backdrop-blur-xl border-b border-white/20 shadow-sm;
+  }
+
+  .sticky-sidebar {
+    @apply fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 z-sidebar overflow-y-auto;
+  }
+
+  @media (max-width: 1023px) {
+    .sticky-topbar {
+      @apply left-0;
+    }
+    .sticky-sidebar {
+      @apply left-0 top-16 w-full max-w-xs h-[calc(100vh-4rem)];
+    }
+  }
+
+  @media (max-width: 767px) {
+    .sticky-topbar {
+      @apply h-14;
+    }
+    .sticky-sidebar {
+      @apply top-14 h-[calc(100vh-3.5rem)];
+    }
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #bfc9c3;
+    border-radius: 10px;
+  }
+}
 
 @media (max-width: 767px) {
   [style*="padding-top: 6rem"],
@@ -134,5 +366,26 @@
   }
   .no-print {
     display: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .modal-fullscreen {
+    @apply max-w-full w-screen m-0 rounded-none h-screen max-h-screen;
+  }
+  .modal-fullscreen .rounded-2xl {
+    @apply rounded-none;
+  }
+}
+
+@media (max-width: 767px) {
+  .bottom-sheet {
+    @apply fixed inset-0 z-bottom-sheet flex items-end;
+  }
+  .bottom-sheet-content {
+    @apply w-full max-h-[85vh] rounded-t-2xl bg-surface shadow-2xl animate-slide-up;
+  }
+  .bottom-sheet-backdrop {
+    @apply fixed inset-0 bg-black/40 backdrop-blur-sm z-[199];
   }
 }

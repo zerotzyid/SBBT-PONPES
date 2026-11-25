@@ -10,6 +10,14 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        'xs': '320px',
+        'sm': '640px',
+        'md': '768px',
+        'lg': '1024px',
+        'xl': '1280px',
+        '2xl': '1536px',
+      },
       colors: {
         'primary-container': '#064e3b',
         'on-background': '#121c2a',
@@ -90,6 +98,27 @@ export default {
         'headline-lg': ['32px', { lineHeight: '1.3', fontWeight: '600' }],
         'headline-md': ['24px', { lineHeight: '1.4', fontWeight: '600' }],
         'display-lg': ['48px', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'display-lg-fluid': ['clamp(32px, 5vw, 48px)', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'headline-lg-fluid': ['clamp(24px, 4vw, 32px)', { lineHeight: '1.3', fontWeight: '600' }],
+        'headline-md-fluid': ['clamp(20px, 3.5vw, 24px)', { lineHeight: '1.4', fontWeight: '600' }],
+        'title-lg-fluid': ['clamp(18px, 3vw, 20px)', { lineHeight: '1.5', fontWeight: '600' }],
+        'body-md-fluid': ['clamp(14px, 2.5vw, 16px)', { lineHeight: '1.6', fontWeight: '400' }],
+      },
+      minHeight: {
+        'touch': '44px',
+        'touch-lg': '48px',
+      },
+      minWidth: {
+        'touch': '44px',
+        'touch-lg': '48px',
+      },
+      zIndex: {
+        'sidebar': '50',
+        'topbar': '30',
+        'modal-backdrop': '100',
+        'modal': '101',
+        'bottom-sheet': '200',
+        'toast': '300',
       },
     },
   },
