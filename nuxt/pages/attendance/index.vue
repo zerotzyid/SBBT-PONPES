@@ -28,6 +28,8 @@
         <div class="space-y-1 hidden md:block">
           <label class="text-label-xs text-on-surface-variant">Legenda</label>
           <div class="flex gap-1.5 text-label-xs flex-wrap">
+            <span class="px-1.5 py-0.5 rounded bg-surface-container-low font-semibold">J1 = Jam Pertama</span>
+            <span class="px-1.5 py-0.5 rounded bg-surface-container-low font-semibold">J2 = Jam Kedua</span>
             <span v-for="s in STATUS_OPTIONS" :key="s.value" class="px-1.5 py-0.5 rounded bg-surface-container-low">{{ s.symbol }} {{ s.label }}</span>
           </div>
         </div>
@@ -60,14 +62,23 @@
 
     <div v-if="students.length > 0" class="glass-card rounded-xl shadow-sm overflow-hidden">
       <div class="overflow-x-auto" id="print-area">
-        <table class="w-full text-left" style="min-width:1400px">
+        <table class="w-full text-left" style="min-width:2400px">
           <thead class="bg-surface-container-low">
             <tr>
-              <th class="px-2 py-2 text-label-xs text-on-surface-variant w-8 text-center"><input type="checkbox" :checked="allSelected" @change="toggleAll" class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" /></th>
-              <th class="px-2 py-2 text-label-xs text-on-surface-variant w-8 text-center">#</th>
-              <th class="px-2 py-2 text-label-xs text-on-surface-variant sticky left-0 bg-surface-container-low z-10" style="min-width:120px">Nama Santri</th>
-              <th class="px-2 py-2 text-label-xs text-on-surface-variant" style="min-width:80px">Alamat</th>
-              <th v-for="d in 31" :key="d" class="px-0.5 py-2 text-label-xs text-on-surface-variant text-center" :style="{ minWidth: dayColWidth + 'px', width: dayColWidth + 'px' }">{{ d }}</th>
+              <th rowspan="3" class="px-2 py-2 text-label-xs text-on-surface-variant w-8 text-center align-middle"><input type="checkbox" :checked="allSelected" @change="toggleAll" class="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary" /></th>
+              <th rowspan="3" class="px-2 py-2 text-label-xs text-on-surface-variant w-8 text-center align-middle">#</th>
+              <th rowspan="3" class="px-2 py-2 text-label-xs text-on-surface-variant sticky left-0 bg-surface-container-low z-10 align-middle" style="min-width:120px">Nama Santri</th>
+              <th rowspan="3" class="px-2 py-2 text-label-xs text-on-surface-variant align-middle" style="min-width:80px">Alamat</th>
+              <th :colspan="31 * 2" class="px-0.5 py-1 text-label-xs text-on-surface-variant text-center border-l border-outline-variant/20 font-bold">TANGGAL</th>
+            </tr>
+            <tr>
+              <th v-for="d in 31" :key="'tgl' + d" colspan="2" class="px-0.5 py-1 text-label-xs text-on-surface-variant text-center border-l border-outline-variant/20 font-medium">{{ d }}</th>
+            </tr>
+            <tr>
+              <template v-for="d in 31" :key="'jam' + d">
+                <th class="px-0 py-1 text-[9px] text-on-surface-variant text-center font-normal border-l border-outline-variant/10" :style="{ minWidth: dayColWidth + 'px', width: dayColWidth + 'px' }">J1</th>
+                <th class="px-0 py-1 text-[9px] text-on-surface-variant text-center font-normal" :style="{ minWidth: dayColWidth + 'px', width: dayColWidth + 'px' }">J2</th>
+              </template>
             </tr>
           </thead>
           <tbody class="divide-y divide-outline-variant/10">
@@ -76,11 +87,18 @@
               <td class="px-2 py-1 text-label-xs text-on-surface-variant text-center">{{ idx + 1 }}</td>
               <td class="px-2 py-1 text-label-xs font-medium sticky left-0 bg-surface z-10">{{ student.name }}</td>
               <td class="px-2 py-1 text-label-xs text-on-surface-variant">{{ student.city || '-' }}</td>
-              <td v-for="d in 31" :key="d" class="px-0.5 py-1 text-center">
-                <select v-model="attendanceData[student.id][String(d)]" class="bg-surface-container-low border rounded text-[10px] py-1 px-0.5 focus:ring-primary outline-none w-full" :class="statusClass(attendanceData[student.id][String(d)])">
-                  <option v-for="opt in SELECT_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.symbol }}</option>
-                </select>
-              </td>
+              <template v-for="d in 31" :key="'pm' + d">
+                <td class="px-0.5 py-1 text-center border-l border-outline-variant/10">
+                  <select v-model="attendanceData[student.id][dayKey(d, '1')]" class="bg-surface-container-low border rounded text-[10px] py-1 px-0.5 focus:ring-primary outline-none w-full" :class="statusClass(attendanceData[student.id][dayKey(d, '1')])">
+                    <option v-for="opt in SELECT_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.symbol }}</option>
+                  </select>
+                </td>
+                <td class="px-0.5 py-1 text-center">
+                  <select v-model="attendanceData[student.id][dayKey(d, '2')]" class="bg-surface-container-low border rounded text-[10px] py-1 px-0.5 focus:ring-primary outline-none w-full" :class="statusClass(attendanceData[student.id][dayKey(d, '2')])">
+                    <option v-for="opt in SELECT_OPTIONS" :key="opt.value" :value="opt.value">{{ opt.symbol }}</option>
+                  </select>
+                </td>
+              </template>
             </tr>
           </tbody>
         </table>
@@ -264,7 +282,10 @@ function toggleOne(id: string) {
 function toggleAll() {
   selectedIds.value = allSelected.value ? new Set() : new Set(students.value.map(s => s.id))
 }
-const dayColWidth = 32
+const dayColWidth = 22
+
+// Dua sesi per tanggal: J1 = Jam Pertama, J2 = Jam Kedua
+function dayKey(d: number, jam: '1' | '2') { return `${d}-${jam}` }
 
 const ocrParsedRows = computed(() => {
   if (!ocrResult.value || students.value.length === 0) return []
@@ -282,14 +303,16 @@ const summary = computed(() => {
   const daysInMonth = new Date(selectedMonth.value + '-01').getMonth() + 1 === parseInt(selectedMonth.value.split('-')[1])
     ? new Date(parseInt(selectedMonth.value.split('-')[0]), parseInt(selectedMonth.value.split('-')[1]), 0).getDate() : 30
   const totalDays = Math.min(daysInMonth, 31)
-  const total = students.value.length * totalDays
+  const total = students.value.length * totalDays * 2
   const counts: Record<string, number> = {}
   for (const s of students.value) {
     const d = attendanceData.value[s.id]
     if (!d) continue
     for (let day = 1; day <= totalDays; day++) {
-      const v = normalizeStatus(d[String(day)] || 'hadir')
-      counts[v] = (counts[v] || 0) + 1
+      for (const jam of ['1', '2'] as const) {
+        const v = normalizeStatus(d[dayKey(day, jam)] || 'hadir')
+        counts[v] = (counts[v] || 0) + 1
+      }
     }
   }
   return SUMMARY_CONFIG.map(c => ({ ...c, count: counts[c.key] || 0, total, percent: total ? Math.round((counts[c.key] || 0) / total * 100) : 0 }))
@@ -330,7 +353,10 @@ function initAttendanceData() {
   const data: Record<string, Record<string, string>> = {}
   for (const s of students.value) {
     const marks: Record<string, string> = {}
-    for (let d = 1; d <= 31; d++) marks[String(d)] = 'hadir'
+    for (let d = 1; d <= 31; d++) {
+      marks[dayKey(d, '1')] = 'hadir'
+      marks[dayKey(d, '2')] = 'hadir'
+    }
     data[s.id] = marks
   }
   attendanceData.value = data
@@ -361,7 +387,12 @@ async function loadSession() {
       for (const s of students.value) {
         const found = recordMap.find((r: any) => r.studentId === s.id)
         const marks: Record<string, string> = {}
-        for (let d = 1; d <= 31; d++) marks[String(d)] = normalizeStatus(found?.marks?.[String(d)] || 'hadir')
+        for (let d = 1; d <= 31; d++) {
+          // Data lama hanya punya satu status per tanggal → dibaca sebagai Jam Pertama
+          const legacy = found?.marks?.[String(d)]
+          marks[dayKey(d, '1')] = normalizeStatus(found?.marks?.[dayKey(d, '1')] ?? legacy ?? 'hadir')
+          marks[dayKey(d, '2')] = normalizeStatus(found?.marks?.[dayKey(d, '2')] ?? 'hadir')
+        }
         merged[s.id] = marks
       }
       attendanceData.value = merged
@@ -574,7 +605,15 @@ function applyOcrResult() {
     let applied = 0
     for (const sid of Object.keys(parsed)) {
       if (fresh[sid]) {
-        fresh[sid] = { ...fresh[sid], ...parsed[sid] }
+        // OCR masih menghasilkan satu status per tanggal → terapkan ke kedua jam
+        const expanded: Record<string, string> = {}
+        for (const [k, v] of Object.entries(parsed[sid])) {
+          if (k.includes('-')) { expanded[k] = v; continue }
+          const day = Number(k)
+          expanded[dayKey(day, '1')] = v
+          expanded[dayKey(day, '2')] = v
+        }
+        fresh[sid] = { ...fresh[sid], ...expanded }
         applied++
       }
     }
@@ -590,10 +629,12 @@ function exportExcel() {
   if (students.value.length === 0) return
   const symbolOf: Record<string, string> = {}; for (const o of STATUS_OPTIONS) symbolOf[o.value] = o.symbol
   const cols = Array.from({ length: 31 }, (_, i) => i + 1)
-  let html = `<table border="1"><tr><th>No</th><th>Nama</th><th>Alamat</th>${cols.map(d => `<th>${d}</th>`).join('')}</tr>`
+  let html = `<table border="1"><tr><th rowspan="2">No</th><th rowspan="2">Nama</th><th rowspan="2">Alamat</th>${cols.map(d => `<th colspan="2">${d}</th>`).join('')}</tr>`
+  html += `<tr>${cols.map(() => '<th>J1</th><th>J2</th>').join('')}</tr>`
   students.value.forEach((s, i) => {
     const d = attendanceData.value[s.id] || {}
-    html += `<tr><td>${i + 1}</td><td>${s.name}</td><td>${s.city || ''}</td>${cols.map(dd => `<td style="text-align:center">${symbolOf[normalizeStatus(d[String(dd)])] || '✓'}</td>`).join('')}</tr>`
+    const marks = cols.map(dd => (['1', '2'] as const).map(jam => `<td style="text-align:center">${symbolOf[normalizeStatus(d[dayKey(dd, jam)])] || '✓'}</td>`).join('')).join('')
+    html += `<tr><td>${i + 1}</td><td>${s.name}</td><td>${s.city || ''}</td>${marks}</tr>`
   })
   html += '</table>'
   const blob = new Blob([html], { type: 'application/vnd.ms-excel' })
@@ -624,11 +665,11 @@ function printAttendance() {
   const printWindow = window.open('', '_blank')
   if (!printWindow) return
   const dayCols = Array.from({ length: 31 }, (_, i) => i + 1)
-  const dateColWidth = 20
+  const dateColWidth = 11
   const colNo = 30
   const colNama = 170
   const colAlamat = 130
-  const tableWidth = colNo + colNama + colAlamat + dayCols.length * dateColWidth
+  const tableWidth = colNo + colNama + colAlamat + dayCols.length * 2 * dateColWidth
   const rowHeight = 20
   const symbolOfPrint: Record<string, string> = {}; for (const o of STATUS_OPTIONS) symbolOfPrint[o.value] = o.symbol
   const dataRows = students.value.map((s, idx) => {
@@ -637,11 +678,11 @@ function printAttendance() {
       <td style="padding:1px 3px;border:1px solid #000;text-align:center;font-size:8pt;font-family:'Times New Roman',serif;width:${colNo}px">${idx + 1}</td>
       <td style="padding:1px 3px;border:1px solid #000;font-size:8pt;font-family:'Times New Roman',serif">${s.name}</td>
       <td style="padding:1px 3px;border:1px solid #000;font-size:8pt;font-family:'Times New Roman',serif">${s.city || ''}</td>
-      ${dayCols.map(dd => {
-        const sym = symbolOfPrint[normalizeStatus(d[String(dd)])] || ''
+      ${dayCols.map(dd => (['1', '2'] as const).map(jam => {
+        const sym = symbolOfPrint[normalizeStatus(d[dayKey(dd, jam)])] || ''
         const display = sym === '✓' ? '' : sym // kosong untuk hadir agar kertas bersih seperti sebelumnya
-        return `<td style="padding:1px 2px;border:1px solid #000;text-align:center;font-size:7pt;font-family:'Times New Roman',serif;width:${dateColWidth}px;height:${rowHeight}px">${display}</td>`
-      }).join('')}
+        return `<td style="padding:1px 2px;border:1px solid #000;text-align:center;font-size:6.5pt;font-family:'Times New Roman',serif;width:${dateColWidth}px;height:${rowHeight}px">${display}</td>`
+      }).join('')).join('')}
     </tr>`
   }).join('')
   const totalHeaderHeight = 100
@@ -655,7 +696,7 @@ function printAttendance() {
       <td style="padding:1px 3px;border:1px solid #000;text-align:center;font-size:8pt;font-family:'Times New Roman',serif;width:${colNo}px">${num}</td>
       <td style="padding:1px 3px;border:1px solid #000;font-size:8pt;font-family:'Times New Roman',serif"></td>
       <td style="padding:1px 3px;border:1px solid #000;font-size:8pt;font-family:'Times New Roman',serif"></td>
-      ${dayCols.map(() => '<td style="padding:0;border:1px solid #000;width:' + dateColWidth + 'px;height:' + rowHeight + 'px"></td>').join('')}
+      ${dayCols.map(() => '<td style="padding:0;border:1px solid #000;width:' + dateColWidth + 'px;height:' + rowHeight + 'px"></td><td style="padding:0;border:1px solid #000;width:' + dateColWidth + 'px;height:' + rowHeight + 'px"></td>').join('')}
     </tr>`
   }).join('') : ''
   const logoUrl = window.location.origin + '/image/logo.png'
@@ -663,7 +704,7 @@ function printAttendance() {
   printWindow.document.write(`<!DOCTYPE html>
 <html><head><title>Absensi - ${selectedClass.value}</title>
 <style>
-  @page { size: landscape; margin: 10mm 15mm; }
+  @page { size: landscape; margin: 10mm 8mm; }
   body { margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif; color: #000; font-size: 10pt; }
   .header { position: relative; width: ${tableWidth}px; margin: 0 auto; padding-bottom: 4px; }
   .header-left { position: absolute; top: 2px; left: 0; font-size: 8pt; }
@@ -683,12 +724,14 @@ function printAttendance() {
   .th-nama { width: ${colNama}px; font-size: 8pt; padding: 3px 2px; text-align: center; }
   .th-alamat { width: ${colAlamat}px; font-size: 8pt; padding: 3px 2px; text-align: center; }
   .th-tanggal { font-size: 8pt; padding: 2px 0; text-align: center; border-left: 1px solid #000; border-right: 1px solid #000; }
-  .th-day { font-size: 7pt; padding: 1px 0; text-align: center; width: ${dateColWidth}px; font-weight: normal; }
+  .th-day { font-size: 7pt; padding: 1px 0; text-align: center; font-weight: normal; }
+  .th-jam { font-size: 6pt; padding: 1px 0; text-align: center; width: ${dateColWidth}px; font-weight: normal; }
   td { font-size: 8pt; }
   .signature { margin-top: 10px; display: flex; justify-content: space-around; width: ${tableWidth}px; margin-left: auto; margin-right: auto; padding-top: 8px; }
   .signature div { text-align: center; font-size: 9pt; }
   .signature .line { margin-top: 36px; width: 140px; border-top: 1px solid #000; display: block; }
   .signature p { margin: 2px 0; }
+  .note { width: ${tableWidth}px; margin: 2px auto 0 auto; font-size: 7pt; text-align: right; }
 </style></head><body>
 <div class="header">
   <div class="header-left">INV. DINIYAH/ABSEN/KELAS ${selectedClass.value}</div>
@@ -709,18 +752,22 @@ function printAttendance() {
 <table>
   <thead>
     <tr>
-      <th class="th-no" rowspan="2">NO</th>
-      <th class="th-nama" rowspan="2">NAMA</th>
-      <th class="th-alamat" rowspan="2">ALAMAT</th>
-      <th class="th-tanggal" colspan="31">TANGGAL</th>
+      <th class="th-no" rowspan="3">NO</th>
+      <th class="th-nama" rowspan="3">NAMA</th>
+      <th class="th-alamat" rowspan="3">ALAMAT</th>
+      <th class="th-tanggal" colspan="${dayCols.length * 2}">TANGGAL</th>
     </tr>
     <tr>
-      ${dayCols.map(d => `<th class="th-day">${d}</th>`).join('')}
+      ${dayCols.map(d => `<th class="th-day" colspan="2">${d}</th>`).join('')}
+    </tr>
+    <tr>
+      ${dayCols.map(() => '<th class="th-jam">J1</th><th class="th-jam">J2</th>').join('')}
     </tr>
   </thead>
   <tbody>${dataRows}${blankRows}</tbody>
 </table>
 </div>
+<div class="note">J1 = Jam Pertama &nbsp;·&nbsp; J2 = Jam Kedua</div>
 <div class="signature">
   <div><p>Mengetahui,</p><p>Kepala Pondok</p><span class="line"></span></div>
 </div>

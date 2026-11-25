@@ -191,7 +191,7 @@
 <script setup lang="ts">
 import { useTableSelection } from '~/composables/useTableSelection'
 import { usePrintKop } from '~/composables/usePrintKop'
-const { printCss } = usePrintKop()
+const { kopHtml } = usePrintKop()
 const { selected, allSelected, toggleAll, toggleOne, isSelected, clearSelection, selectedCount } = useTableSelection(() => filteredRecords)
 definePageMeta({ layout: 'super-admin', requiredRole: 'super_admin' })
 
@@ -332,21 +332,6 @@ function openSuratModal() {
   showSuratModal.value = true
 }
 
-function kopSuratHtml(): string {
-  return `<div class="kop-berobat">
-    <table style="width:100%;border:none;"><tr>
-      <td style="width:60px;text-align:left;border:none;padding:0;">
-        <img src="/image/logo.png" style="max-height:52px;" onerror="this.style.display='none'" />
-      </td>
-      <td style="text-align:left;border:none;padding:0;padding-left:6px;">
-        <div style="font-size:14pt;font-weight:bold;font-family:'Book Antiqua','Palatino Linotype',serif;">Pondok Pesantren Al Fatah Panekan</div>
-        <div style="font-size:9.5pt;">Desa Turi, Kec. Panekan Kab. Magetan</div>
-      </td>
-    </tr></table>
-    <div style="border-top:3px solid #000;border-bottom:1px solid #000;height:3px;margin-top:4px;"></div>
-  </div>`
-}
-
 function suratBodyHtml(kosong: boolean): string {
   const santri = kosong ? null : students.value.find(s => s.id === suratStudentId.value)
   const nama = santri ? (santri.name || '...............') : '...............................'
@@ -394,12 +379,15 @@ function printSurat() {
   if (!win) { error.value = 'Pop-up diblokir browser. Izinkan pop-up untuk mencetak.'; return }
   win.document.write(`<!DOCTYPE html><html><head><title>Surat Pengantar Berobat</title>
   <style>
-    ${printCss('portrait')}
-    @page { size: 210mm 297mm; margin: 8mm; }
+    @page { size: 297mm 210mm; margin: 8mm; }
     html, body { font-family: Cambria, 'Times New Roman', serif; font-size: 10.5pt; color: #000; margin: 0; padding: 0; }
-    .half { height: 139mm; padding: 4mm 8mm 0; box-sizing: border-box; overflow: hidden; page-break-inside: avoid; }
-    .half + .half { border-top: 1px dashed #999; margin-top: 2mm; padding-top: 4mm; }
-    .kop-berobat { margin-bottom: 8px; }
+    .sheet { display: flex; align-items: flex-start; }
+    .half { flex: 1 1 0; min-width: 0; height: 193mm; padding: 4mm 8mm 0; box-sizing: border-box; overflow: hidden; page-break-inside: avoid; }
+    .half + .half { border-left: 1px dashed #999; }
+    .kop { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 16px; }
+    .kop .logo { max-height: 55px; vertical-align: middle; margin-right: 8px; }
+    .kop .kop-title { font-size: 15pt; font-weight: bold; }
+    .kop .kop-alamat { font-size: 9pt; }
     .judul { text-align: center; font-weight: bold; font-size: 12pt; text-decoration: underline; margin: 6px 0 0; }
     .nomor { text-align: center; font-size: 10pt; margin-bottom: 8px; }
     p { margin: 5px 0; text-align: justify; line-height: 1.35; }
@@ -412,8 +400,10 @@ function printSurat() {
     .ttdNama { margin-top: 52px; font-size: 10.5pt; }
   </style>
   </head><body>
-    <div class="half">${kopSuratHtml()}${inner}</div>
-    <div class="half">${kopSuratHtml()}${inner}</div>
+    <div class="sheet">
+      <div class="half">${kopHtml()}${inner}</div>
+      <div class="half">${kopHtml()}${inner}</div>
+    </div>
   </body></html>`)
   win.document.close()
   win.focus()
